@@ -211,3 +211,16 @@ the planned locked install/build checks; no installation was performed for this 
 
 **Alternatives considered**: npm/package-lock.json (superseded by user direction), multiple
 package managers/lockfiles (rejected to keep dependency resolution consistent).
+
+## Experiment tooling verification — 2026-11-05
+
+Installed the proposed exact TypeScript 7.0.2, tsx 4.23.15, MCP SDK 1.32.2,
+Zod 4.6.7, and Vitest 5.1.0 baseline. Pinned pnpm 10.34.9 with Node.js 24.22.2;
+selected the maintained pnpm 10 line for the conventional JavaScript bootstrap.
+Pinned @types/node 24.10.0 for the Node 24 API target. Frozen lockfile installation
+and strict TypeScript checking passed. No product dependencies have been added.
+Inspector 2.14.0 is pinned in the convenience script but has not been installed/run.
+
+pnpm reports that esbuild's install script was ignored. This did not prevent the compiler
+or Vitest runner from starting; tsx execution and a working esbuild transform must still
+be verified when implementing the experiment. No blanket build-script approval was added.

@@ -6,8 +6,9 @@ quickstart.md, validation.md, and constitution v2.0.0.
 **Tests**: Required by the user's TDD decision and constitution V. Record the intended
 behavioral failure before implementation, then passing result and refactor evidence.
 **Organization**: Setup → controlled-image foundation → US1 → US2/US3 → cross-cutting acceptance.
-**Status**: Task generation only. Every task is unchecked; no implementation or runtime test
-has begun. Paths below are repository-relative design targets, not existing source files.
+**Status**: Experiment tooling initialized (T002–T003). T001 is partial: sandbox
+toolchain verified, local desktop availability pending. T004 onward have not run.
+Product implementation remains gated on actual voice/image evidence.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -28,8 +29,8 @@ GCP deployment is included. Only a separately authorized implementation run may 
 provisioning yet. These are future implementation tasks, not actions performed by generation.
 
 - [ ] T001 Establish Node.js 24 LTS and a compatible pnpm release on the execution host and record versions plus actual macOS/ChatGPT voice availability in specs/001-discuss-diagram/feasibility.md; distinguish the desktop task host from this sandbox and do not claim account access from CLI access.
-- [ ] T002 Initialize minimal experiment scripts and pinned TypeScript 7.0.2, tsx 4.23.15, MCP SDK 1.32.2, Zod 4.6.7, and Vitest 5.1.0 in package.json, pnpm-lock.yaml, and tsconfig.json; pin the exact pnpm release in package.json packageManager and use pnpm exclusively (no package-lock.json); validate manifest/compiler compatibility and record justified adjustments in specs/001-discuss-diagram/research.md without adding the product app yet.
-- [ ] T003 Configure unit/contract test scripts in package.json and vitest.config.ts and a metadata-only red/green evidence record at specs/001-discuss-diagram/test-evidence.md; exclude credentials, image bodies, and response payloads from logs and generated test artifacts.
+- [X] T002 Initialize minimal experiment scripts and pinned TypeScript 7.0.2, tsx 4.23.15, MCP SDK 1.32.2, Zod 4.6.7, and Vitest 5.1.0 in package.json, pnpm-lock.yaml, and tsconfig.json; pin the exact pnpm release in package.json packageManager and use pnpm exclusively (no package-lock.json); validate manifest/compiler compatibility and record justified adjustments in specs/001-discuss-diagram/research.md without adding the product app yet.
+- [X] T003 Configure unit/contract test scripts in package.json and vitest.config.ts and a metadata-only red/green evidence record at specs/001-discuss-diagram/test-evidence.md; exclude credentials, image bodies, and response payloads from logs and generated test artifacts.
 
 ---
 

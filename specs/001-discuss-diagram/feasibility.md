@@ -98,3 +98,23 @@ The conditional data-model.md, contracts/, and quickstart.md now exist. Record r
 results here and reconcile them with the design before product implementation. `$speckit-tasks`
 may sequence a separately authorized feasibility slice ahead of the gated product work. If unsupported, use `$speckit-clarify` to record the user's revised
 scope, and amend the constitution if that scope changes its first-slice obligations.
+
+## Implementation handoff — 2026-11-05
+
+The user reported that voice is unavailable over this remote environment and chose to
+clone the environment locally to continue. The voice requirement remains unchanged.
+Gate A is BLOCKED in this remote environment, not failed or passed. No MCP experiment
+server, image fixture, contract test, canvas, or product implementation exists yet.
+
+Verified sandbox: Linux ARM64, Node.js v24.22.2, pnpm 10.34.9. These are sandbox versions,
+not evidence of macOS toolchain, client availability, account access, or voice support.
+The shell toolchain installation is outside Git and will not transfer through a Git clone.
+Provision Node.js 24 and pnpm 10.34.9 on the local execution host before continuing.
+
+Resume on `feature/discuss-sketch-implementation`, preserving this checkout's changes.
+Run `sh scripts/install-git-hooks.sh` in the new clone and `pnpm install --frozen-lockfile`.
+Set `SPECIFY_FEATURE_DIRECTORY=specs/001-discuss-diagram` when invoking prerequisite
+scripts because this descriptive branch name does not resolve the spec automatically.
+Complete T001 with actual local desktop/client availability, then write and observe the
+failing behavioral tests in T004 before implementing T005. T006 still requires actual
+Inspector/text/voice/changed-image/disconnection observations. Do not skip either voice gate.
