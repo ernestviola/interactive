@@ -6,10 +6,10 @@ This contract describes observable behavior for the existing local Next.js proxy
 
 - Opening the canvas creates or resumes one transient drawing session and makes it readable by the configured local helper. There is no Connect or region-selection operation.
 - A duplicated tab joins the same `sessionId` with its own ephemeral tab presence. The current drawing and 50-step history synchronize without manual action. Each tab may navigate its viewport independently.
-- A confirmed reload of an open tab retains its session checkpoint and rejoins the drawing. If the broker restarted, the browser may obtain a fresh generation for that continuous local drawing; old grants are invalid.
+- A confirmed reload of an open tab retains its session checkpoint and rejoins the drawing. The candidate continuity signal is a browser-reported reload navigation plus a valid checkpoint; it must pass the supported-browser feasibility gate before implementation. If the broker restarted, the browser may obtain a fresh generation for that continuous local drawing; old grants are invalid.
 - Browser Restore Closed Tab after the final tab closed starts a blank new drawing, even if the browser retained old tab storage. A checkpoint without evidence of a continuous reload or live sibling is discarded and cannot restore the ended drawing or its read grant.
 - Each live tab renews presence. Closing a tab may send a best-effort detach. The broker revokes immediately after the last confirmed detach or on lease expiry; correctness must not depend on a close event.
-- If storage cannot safely checkpoint an action, the action is not acknowledged as committed and the earlier drawing remains intact.
+- If storage cannot safely checkpoint an action, the action is not acknowledged as committed and the earlier drawing remains intact. Reaching the existing 1,000-stroke cap likewise rejects the new stroke and gives a distinct drawing-limit notice.
 
 The existing `/api/sketch/sessions` proxy and broker endpoints may evolve to accept tab identity and return session generation, lease, and owner capability. Owner capability is sent only through the same-origin browser proxy to the loopback broker. The local helper's bootstrap capability remains separate and never appears in the canvas page.
 

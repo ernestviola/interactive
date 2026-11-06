@@ -22,13 +22,13 @@ One Canvas Session has one Drawing Document, zero or more live Tab Presences, an
 
 | Field | Meaning | Rules |
 | --- | --- | --- |
-| `strokes` | Ordered committed Stroke records | World-coordinate positions; visible older strokes remain after history eviction |
+| `strokes` | Ordered committed Stroke records | World-coordinate positions; visible older strokes remain after history eviction; existing 1,000-stroke safety cap rejects an additional stroke without altering earlier work |
 | `undo` | Undoable action IDs | At most 50 newest committed drawing actions |
 | `redo` | Undone action IDs | At most 50; cleared by a new committed stroke |
 | `revision` | Content revision | Changes on commit, Undo, and Redo; never on pan or zoom |
 | `checkpointVersion` | Recovery schema | Invalid versions fail safely without interpreting stale data |
 
-The document is the one shared drawing across duplicated tabs. Its latest acknowledged revision is the only eligible source for an AI snapshot. An action must be durably checkpointable for the tab session before it is acknowledged as committed; storage failure preserves the prior document and reports that the new stroke was not saved.
+The document is the one shared drawing across duplicated tabs. Its latest acknowledged revision is the only eligible source for an AI snapshot. An action must be durably checkpointable for the tab session before it is acknowledged as committed; storage failure preserves the prior document and reports that the new stroke was not saved. Hitting the drawing cap also preserves the prior document, with a distinct drawing-limit notice.
 
 ## Stroke and Drawing Action
 
