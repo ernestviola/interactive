@@ -4,8 +4,13 @@
 
 **Input**: Feature specification from `specs/001-discuss-diagram/spec.md`
 
-**Status**: Phase 0 research and Phase 1 design complete. Implementation remains gated on
-runtime voice/image evidence and is expressly not started or authorized by this run.
+**Status**: Runtime gates A and B PASS. Core canvas/history/provenance/recovery and
+on-demand verification are implemented. Final verification passes 44 unit/contract checks,
+22 Chromium/WebKit scenarios, typecheck, lint, and production build. The physical iPhone 12
+voice workflow and core phone interactions were observed. Native Safari/Chrome functional checks also pass.
+The operator waived physical performance measurements and participant/reviewer runs for
+this iteration. The spec is closed under that revised acceptance scope; these are waivers,
+not passing measurements. Details remain in validation-results.md and pilot-results.md. The user explicitly requested tests on demand, not on every commit.
 
 ## Summary
 
@@ -24,12 +29,11 @@ until the staged evidence in [feasibility.md](feasibility.md) satisfies SC-007. 
 
 ## Technical Context
 
-**Language/Version**: TypeScript in strict mode; Node.js 24 LTS proposed. Node/pnpm must be provisioned
-during implementation; no toolchain installation is part of planning.
+**Language/Version**: TypeScript 6.0.3 in strict mode; pnpm-managed Node.js 24.22.1. The compiler compatibility adjustment is recorded in research.md.
 
 **Primary Dependencies**: Next.js App Router and React for the local web app; browser Canvas
 2D and Pointer Events for ink; official `@modelcontextprotocol/sdk` for a local Node MCP broker.
-Manifest-checked baseline: Next 16.4.5, React 19.3.1, MCP SDK 1.32.2, TypeScript 7.0.2,
+Manifest-checked baseline: Next 16.4.5, React 19.3.1, MCP SDK 1.32.2, TypeScript 6.0.3 (adjusted after actual ESLint incompatibility),
 Zod 4.6.7, tsx 4.23.15, Vitest 5.1.0, Playwright 1.64.1. Pin and verify pnpm-lock.yaml during
 implementation; see research.md for engine/peer evidence and its limits. No drawing
 framework, AI API client, or speech SDK is required by the proposed design.
@@ -51,8 +55,7 @@ serves the browser over a trusted private network. ChatGPT may run on a second c
 
 **Project Type**: Local Next.js web application and single-process Node MCP broker; no cloud deployment.
 
-**Performance Goals**: p95 input feedback within 100 ms at 500 strokes of up to 1,000 points
-each, per SC-004. Proposed capture request deadline: 10 seconds with explicit failure.
+**Performance Goals**: The original SC-004 physical p95 target was explicitly waived for this iteration; no measured latency claim is made. The implemented capture deadline is 10 seconds with explicit failure.
 
 **Constraints**: One diagram per browser session; explicit rectangular selection; immutable
 on-demand images; no full-canvas fallback; no persistent image logging; no app login.
@@ -63,13 +66,13 @@ cloud platform; the user's later local-only instruction defers provisioning. Con
 Multiple browser sessions must remain isolated. No public service or production SLA.
 
 **Connection Decision**: ChatGPT desktop local task host → Streamable HTTP at
-`http://127.0.0.1:3001/mcp`; environment-provided per-session bearer capability. Next.js on
+`http://127.0.0.1:3001/mcp`; the local authentication helper obtains the explicitly paired session’s volatile read capability. No shell exports or clipboard transfer are needed. Next.js on
 port 3000 proxies browser management to the broker. iPhone uses the desktop host's trusted
 LAN address for the web app; it does not need a local ChatGPT MCP configuration.
 
 **Runtime Acceptance Dependency**: The target account must have desktop live voice and local
 MCP enabled, and the custom image tool must work during that voice session. Documentary
-support resolves the route; feasibility.md remains a mandatory unexecuted acceptance test.
+support resolves the route; both mandatory runtime gates passed, with actual-client evidence in feasibility.md.
 
 ## Constitution Check
 
@@ -84,13 +87,12 @@ support resolves the route; feasibility.md remains a mandatory unexecuted accept
 | V. TDD | PASS for planned sequencing | Observe failing behavioral tests before covered implementation |
 | Next.js and GCP | PASS | Next.js retained; GCP deployment deferred by explicit local-only instruction |
 | Desktop voice/local MCP planning route | PASS for design | Official desktop voice, MCP, and image docs; exact workflow remains runtime acceptance |
-| Product implementation readiness | NOT PASSED | SC-007 actual-client evidence required; no runtime success claimed |
+| Product implementation readiness | PASS after runtime gates | SC-007 actual-client evidence is recorded in feasibility.md |
 
 Post-design re-check: PASS for design compliance. The data model and contracts enforce
 selected-only immutable snapshots, read-only AI access, session isolation/revocation,
 transient images, local input support, and fail-first validation sequencing. There is no
-constitution exception. SC-007 remains NOT RUN, so product implementation readiness is NOT
-PASSED. A reviewable conditional design does not waive the requirement for a live proof.
+additional implementation exception. SC-007 subsequently passed both runtime gates before broader product work. Participant and physical-latency evaluation were later explicitly waived by the operator, as recorded in spec.md.
 
 ## Project Structure
 
@@ -112,11 +114,11 @@ specs/001-discuss-diagram/
 └── checklists/requirements.md
 ```
 
-`tasks.md` is not generated by this command. All listed outputs are design documentation.
+The design artifacts above and the implementation tasks in tasks.md are present. Runtime evidence and current acceptance dispositions are recorded separately.
 
 ### Source Code (repository root)
 
-Proposed layout only, not created or authorized as a full build:
+Implemented source layout:
 
 ```text
 src/
@@ -156,8 +158,7 @@ and transient image requirements.
    session authorization, revocation, stale results, timeouts, and mutation protection.
 5. Implement the product only after these gates; record failing and passing test evidence.
 
-No application source, package configuration, deployment, or live connection was created
-in this planning run. No end-to-end feasibility result is claimed.
+The original planning phase created no application runtime. Implementation subsequently delivered the local app and broker after the documented live gates; no cloud deployment was added.
 
 ## Requirements Traceability
 
@@ -186,5 +187,4 @@ request, with evidence recorded in readiness-review.md. All 33 written criteria 
 
 Post-refinement constitution check: PASS for documentation/design. TDD obligations, local
 scope, selected-only image sharing, session revocation, and the SC-007 runtime gate remain.
-SC-007 is NOT RUN; no voice capability result, performance pass, or product completion is
-asserted. Next.js, the MCP broker, and every planned interface remain unimplemented.
+SC-007 later passed, and Next.js, the broker, and planned interfaces are implemented. Current completion is subject to the explicit participant/performance waivers above; neither waived outcome is claimed as passed.

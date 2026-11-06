@@ -1,122 +1,69 @@
-# Quickstart Validation Guide
+# Quickstart: Discuss a Freehand Sketch
 
-Planning artifact only. No package.json, runnable server, tests, or UI exists yet. Commands
-below define the intended implementation's scripts and expected results; they have NOT run.
-Do not install packages, register an MCP connection, or implement code under this planning task.
+The canvas, history, selected-region preview, read-only MCP connection, sharing status,
+and reconnect behavior are implemented. Both live voice gates passed; see
+[feasibility](feasibility.md) and [test evidence](test-evidence.md).
 
-## Stage 1: Verify the desktop-local capability
+## Start
 
-Follow [feasibility.md](feasibility.md) before building the product. The initial target is a
-local task in the ChatGPT desktop app with live voice enabled, not hosted ChatGPT web.
-Use controlled non-sensitive images first and a minimal live selection capture second.
-No runtime pass is currently recorded.
+Use pnpm 12.15.0; it selects pinned Node 24 automatically. No shell exports are required.
 
-Read the official [voice](https://learn.chatgpt.com/docs/features/voice),
-[MCP configuration](https://learn.chatgpt.com/docs/extend/mcp), and
-[image-input](https://learn.chatgpt.com/docs/image-inputs) docs. Local MCP configuration and
-live voice availability depend on the actual app, task host, rollout, plan, and workspace.
-No separate app account is required; ChatGPT's own account requirements still apply.
-
-## Stage 2: Intended local run after implementation is separately authorized
-
-Prerequisites: compatible Node.js 24 LTS toolchain; locked Next.js/React/MCP SDK dependencies;
-a desktop voice-capable client; physical iPhone 12 Safari and trusted local network for phone testing.
-Provision Node.js 24 LTS and a compatible pnpm release during implementation. Pin the exact
-pnpm version in package.json via its packageManager field; no toolchain is installed by this guide.
-
-From repository root, planned scripts are:
-
-```bash
+```sh
 pnpm install --frozen-lockfile
-pnpm run test:unit
-pnpm run test:contract
 pnpm run dev
-pnpm run test:browser
+```
+
+For the production build:
+
+```sh
 pnpm run build
+pnpm run start
 ```
 
-`dev` must launch Next.js at port 3000 and the local broker at port 3001. A production-like
-local check must also run the built web app with that same broker to avoid relying on dev
-behavior. Package scripts and process supervision are implementation deliverables, not files
-created by this guide. Browser tests require their normal Playwright runtime dependencies.
+Open http://127.0.0.1:3000, tap Start drawing, draw, choose Select, and drag a rectangle.
+Check the preview, then Connect and ask the configured desktop MCP client to read it.
+Clear selection removes the shared region without changing ink or undo/redo; subsequent reads
+return NO_SELECTION until you select a region again.
+The private local helper configuration is created once; normal pairing requires no token
+copying or exports. See the [root README](../../README.md) for the configuration example.
+The UI uses port 3000; the broker stays on loopback port 3001. Stop the disposable experiment
+before starting the app because it uses the same broker port.
 
-Commit pnpm-lock.yaml as the sole dependency lockfile; do not create package-lock.json.
-Use pnpm for all dependency changes and scripts.
+For a phone, configure the exact trusted LAN origin once in ignored .env.local as documented
+in the README. Open the Mac's LAN address in Safari on the same Wi-Fi, keep voice on the Mac,
+and Connect from the phone canvas. Connecting a different canvas revokes the earlier pairing.
 
-Routine tests must use controlled MCP clients and responses, not a live paid AI service.
-For TDD-covered behavior, first run the relevant behavioral test and observe its intended
-failure, implement only that behavior, then run green and refactor. Record both results.
+## Verify on demand
 
-## Stage 3: Pair the local desktop task
-
-1. Open the web app at `http://localhost:3000`, acknowledge session-only data handling, draw,
-   select a region, and verify the exact preview.
-2. Use Connect to generate a per-session read capability. Keep it out of chat and screenshots.
-3. Place that capability in the desktop task host's environment as `SKETCH_READ_TOKEN`.
-   Configure the local desktop MCP server URL as `http://127.0.0.1:3001/mcp` and its
-   `bearer_token_env_var` as `SKETCH_READ_TOKEN`, using the official desktop MCP settings.
-   Do not commit a token or configure only a different sandbox/remote host by mistake.
-4. Restart/reconnect the MCP connection so the host reads the environment. Confirm the tool
-   appears, then inspect it with MCP Inspector using the same read-only capability.
-5. Start actual live voice in that local task and request the current selected sketch.
-   Confirm the returned snapshot ID/read time and an image-grounded spoken answer.
-6. Change the drawing; request another read in the same voice conversation. Verify new visual
-   content, not a recollection of the earlier image. Do not count dictation or text-to-speech
-   layered on a text chat as a live voice pass.
-
-## Stage 4: iPhone drawing with desktop voice
-
-- Serve the web app on an interface reachable from the trusted LAN. On an ordinary local
-  machine the web server listens on 0.0.0.0:3000 and iPhone opens the host's LAN IP/hostname.
-  The desktop broker can remain loopback-only. Configure the explicit permitted LAN origin.
-- In this sandbox, both services must bind 0.0.0.0 internally to use host publishing. The
-  operator runs on the host, with the actual sandbox name:
-
-```bash
-sbx ports <sandbox-name> --publish 3000:3000
-sbx ports <sandbox-name> --publish 127.0.0.1:3001:3001
+```sh
+pnpm run verify
 ```
 
-- `localhost` on iPhone is the phone, not the desktop or sandbox. Ensure host firewall/router
-  allows phone access to the UI port. The broker is host-only; never publish it broadly just
-  to let the phone draw. Browser management reaches the broker through Next.js proxy routes.
-- Pair the phone's sketch session explicitly; a token from an earlier desktop canvas does not
-  automatically follow. Speak through ChatGPT on the computer while drawing on iPhone.
-- Test finger drawing, mode switching, page scrolling outside the canvas, orientation changes,
-  pointer cancellation, and background/resume. A backgrounded session may expire after 20s;
-  local ink should remain if the tab survives, but pairing must be renewed explicitly.
+This runs frozen install, unit/contract tests, browser workflows, typecheck, lint, and build;
+it stops at the first failure. It is never installed as a commit hook or scheduled job.
+Focused commands are `pnpm run test:unit`, `pnpm run test:contract`, and
+`pnpm run test:browser`; add `--grep 'lease expiry'` to the browser command for that scenario.
+Browser checks start and stop their own loopback services on ports 3100/3101, use .next-test,
+and can run alongside the ordinary app. No shell exports are needed.
 
-## Acceptance walkthrough
+Routine automation covers draw/select, undo/redo, limits, crop privacy, snapshot provenance,
+blank errors, offline editing, controlled-clock expiry, actual broker restart, explicit
+re-pair, old-key revocation, session end, and accessible controls. PNGs remain in memory;
+screenshots, video, and traces are disabled. No paid AI service is needed for these checks.
 
-| Scenario | Expected result |
-| --- | --- |
-| Draw and undo/redo on desktop and iPhone | Visible ink and stable history; no drawing-induced page scroll |
-| Rectangle crossing marks | Exact preview/image clipping; no outside ink or UI |
-| Edit while PNG is encoding | Earlier snapshot stays fixed; editing remains usable |
-| Empty or absent selection | Actionable error; no full-canvas fallback |
-| Two different sessions | Tokens never cross session boundaries |
-| End, rotate pairing, expire lease | Pending and future reads fail; no cached image fallback |
-| Slow, late, or duplicate response | Bounded failure; cannot fulfill a different read |
-| AI unavailable | Ink, selection, and undo/redo remain usable |
-| Completed read | Last-sent snapshot ID/capture time updates without claiming AI comprehension |
-| Reload or close | Warned session loss; old pairing invalidates by end/lease expiry |
+## Session behavior
 
-Measure p95 pointer-to-visible feedback at 500 strokes of up to 1,000 points each on both
-physical device types. Run the five-user pilot and ten-question response review specified
-by SC-001, SC-005, and SC-006 using [validation.md](validation.md). These product targets have not been achieved by documentation.
+Ink and history stay in tab memory. Surviving tabs retain ink across broker outages; reconnect
+explicitly after restart/expiry. Closing or reloading loses ink. Do not close a tab to test
+outage preservation. End session revokes future reads; previously delivered images follow
+the AI client's retention settings. Edits never change an earlier snapshot. A last-sent
+label means delivery to the client connection, without promising comprehension.
 
-## Definition of readiness
+## Acceptance closeout
 
-- Record SC-007 controlled-image and live selected-canvas evidence, including actual client
-  and device arrangement. Unsupported voice returns to the user for scope, not a silent fallback.
-- All automated tests/build checks pass; real iPhone and desktop walkthroughs pass.
-- Fail-first records exist for covered behavior; no image or capability is present in logs,
-  caches, persisted storage, or test artifacts.
-- No GCP provisioning, public plugin publishing, embedded voice, or app account implementation
-  is needed for this local prototype.
-
-## Agreed device baseline
-
-macOS Chromium, macOS Safari, and physical iPhone 12 Safari are separate acceptance targets.
-Follow validation.md for baseline recording, presentation-latency measurement, and pilot
-scoring. No Mac hardware, OS version, or performance result is assumed by this guide.
+[Validation results](validation-results.md) report SC-001–SC-007 separately. Physical
+iPhone 12 voice, changed captures, undo/redo, preview/status and background/resume were
+observed. Native Safari and Chrome functional walkthroughs and restart/re-pair were also checked directly.
+The operator waived external physical latency measurements, the five-user pilot and formal
+ten-answer target-user grading for this first iteration. The spec is closed; none of those
+unrun checks is reported as passing. The exact phone build remains unreported. Automated WebKit is supplemental evidence, not physical Safari acceptance.

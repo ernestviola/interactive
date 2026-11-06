@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Clarified — external feasibility validation pending
+**Status**: Implemented — live feasibility verified; participant and physical-latency acceptance waived for this iteration
 
 **Input**: Product designers and system architects draw in a separate web app on desktop or iPhone
 and speak with AI through ChatGPT. An MCP connection lets the AI read selected sketches.
@@ -172,6 +172,11 @@ current selection without recreating the drawing.
 
 ### Measurable Outcomes
 
+**Current acceptance scope:** On 2026-11-05 the operator waived participant testing
+(SC-001, SC-005 and the formal reviewer grading in SC-006), followed by physical latency
+measurement (SC-004), for this first iteration. These targets are retained below as future
+validation goals and are not completion gates or claimed passes for this spec.
+
 - **SC-001**: At least four of five participants, including designers and architects, draw a
   rough three-step flow, select it, discuss it aloud, and manually revise it without assistance
   within five minutes, excluding initial connection setup. At least two participants MUST
@@ -208,7 +213,7 @@ current selection without recreating the drawing.
   the locally hosted canvas over a private local connection. Simultaneous ChatGPT voice
   and drawing on one iPhone is outside scope. SC-007 MUST document the tested arrangement.
 - ChatGPT provides conversation and voice. Its ability to consume sketch images through MCP
-  during voice interaction is an unresolved external dependency subject to SC-007.
+  during voice interaction was verified under SC-007 on the recorded desktop/iPhone arrangement; future clients still require compatibility verification.
 - Durable storage, reload recovery, sharing between users, export, structured diagram objects,
   automatic handwriting recognition, and AI canvas edits are outside scope.
 - Users select a rectangle explicitly; the AI reads it on demand rather than receiving a

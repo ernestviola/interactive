@@ -103,3 +103,10 @@ in a connection-control area, never in the drawing or preview, and not persisted
 The browser keeps its owner capability in tab memory. A new read capability revokes the old
 one; ending/restarting/expiring the session requires pairing again. No session enumeration
 is exposed to MCP.
+
+Local-operator refinement after the user's no-export request: one volatile native-client
+handoff slot may hold the currently owner-issued read capability, alongside its session and
+pairing epoch, so the configured desktop authentication helper can obtain it. This slot is
+separate from the hash-only session registry, never persisted, and cleared on revocation,
+expiry, or restart. Its loopback endpoint requires a separate local operator bootstrap
+credential and cannot select, enumerate, or manage sessions. See local-session.md.

@@ -1,5 +1,20 @@
 # Research: Local Freehand Sketch and ChatGPT MCP
 
+## Implementation update — 2026-11-05
+
+T001–T005 now implement the disposable experiment only. The previously proposed package
+versions installed and typechecked without adjustment: TypeScript 7.0.2, tsx 4.23.15,
+MCP SDK 1.32.2, Zod 4.6.7, and Vitest 5.1.0. Node 24.22.1 is available in the desktop
+app's bundled runtime; pnpm 12.15.0 is pinned. Added @types/node 24.10.1 for that runtime.
+pnpm-workspace.yaml permits only esbuild's required installation build and selects a local
+ignored package store. Inspector CLI 2.14.0 independently verified two changed PNG results.
+PNG rendering uses native Node zlib/CRC32 and process memory; no extra image package is needed.
+
+The execution host is macOS, not the earlier planning sandbox. The historical observations
+below describe planning time. Runtime evidence is in test-evidence.md and feasibility.md.
+Gate A still needs actual ChatGPT text/voice/operator observations; no product work is
+authorized past that gate by these automated successes.
+
 **Date**: 2026-11-05
 **Outcome**: Documentation now establishes a desktop-local planning path. Phase 1 design
 can proceed without asserting that SC-007 passed. Runtime voice/image acceptance remains a
@@ -211,3 +226,29 @@ the planned locked install/build checks; no installation was performed for this 
 
 **Alternatives considered**: npm/package-lock.json (superseded by user direction), multiple
 package managers/lockfiles (rejected to keep dependency resolution consistent).
+
+## Startup refinement — no repeated exports
+
+The user explicitly requested package-manager startup without repeated environment exports.
+Pin Node 24.22.1 in `devEngines.runtime` so pnpm selects it for scripts. The synthetic
+experiment now generates/reuses an owner-only, ignored operator credential file and the
+desktop connection can obtain its Authorization header through a local command helper.
+This changes experiment setup only; session-specific canvas read capabilities remain gated
+and unimplemented. No global environment or account configuration was modified.
+
+Sources: [pnpm runtime pinning](https://pnpm.io/package_json#devenginesruntime) and
+[OpenAI local MCP helper configuration](https://learn.chatgpt.com/docs/extend/mcp).
+
+## Final compiler/linter compatibility adjustment
+
+Actual lint execution rejected TypeScript 7.0.2: typescript-eslint 8.72.1 requires
+TypeScript >=4.8.4 <6.1.0 and explicitly reports that its TS 7 API is unsupported.
+Adjusted to **TypeScript 6.0.3**, as allowed by T002's compatibility-adjustment requirement.
+Strict application/experiment typechecks, tests, and production Next build pass.
+
+Next's config permits ESLint >=9, but its current eslint-plugin-import 2.32.0,
+eslint-plugin-jsx-a11y 6.10.2, and eslint-plugin-react 7.37.5 exclude ESLint 10.14.0.
+Use exact **ESLint 9.39.5** with eslint-config-next 16.4.5. The registry marks v9
+deprecated; it is the compatible existing plugin toolchain. `pnpm peers check` is clean.
+Revisit this development-tool pin when the upstream plugins support ESLint 10/TS 7.
+No runtime dependency or product requirement was changed by this adjustment.
