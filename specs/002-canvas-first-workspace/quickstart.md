@@ -44,12 +44,13 @@ Start the local app with `pnpm run dev`. Open the canvas in desktop Chrome or Sa
 | Empty/ambiguous | Read empty drawing; open distinct drawings and read | Distinct actionable errors; no stale or wrong image |
 | Outage | Stop broker while drawing; restore it | Drawing continues, session recovers, no old grant can read after revocation |
 | Final close | Close last tab; wait for lease expiry if needed | Future reads fail; app-managed image bytes are not retained |
+| Drawing limit | Reach the existing 1,000-stroke cap; attempt one more stroke | Earlier ink remains; new stroke is not committed and a drawing-limit notice appears |
 
 For read accuracy, place strokes far apart and near opposite edges of the drawn content. Verify all are in the image with their relative layout preserved. Also test a spread that would make one image unreadable and confirm `CAPTURE_UNREADABLE` rather than a misleading partial image. Test a full checkpoint quota separately: the rejected new stroke is clearly reported while previously committed work remains.
 
 ## Outcome gates
 
-- Measure the specified 500-stroke workload against SC-005: at least 95% of drawing, pan, and zoom interactions show visible feedback within 100 ms on supported desktop and iPhone devices.
-- Run the five-person usability walkthrough in SC-001/SC-002 and the ten prepared sketch discussions in SC-006. Preidentify two visible elements and one ambiguous mark in each discussion, then record actual counts, not inferred passes.
+- Measure the specified 500-stroke workload against SC-005 on supported desktop and physical iPhone devices with the same input-event-to-first-changed-frame method. Record the device, browser, sample count, and percentage within 100 ms separately for drawing, pan, and zoom; at least 95% of each interaction type must meet the threshold on each device.
+- Run ten scripted fresh-open and drawing/navigation walkthroughs across desktop and physical iPhone Safari for SC-001/SC-002; record actual timing and pass counts, without treating these as a participant usability study. Run ten prepared sketch discussions for SC-006, preidentifying two visible elements and one ambiguous mark in each. For SC-008, prepare ten sketch scenarios with a predefined actionable gap or decision, then use separate fresh ChatGPT conversations for the live-canvas and manual-screenshot flows, alternating which runs first. Record per-flow success, elapsed time from completed sketch to usable answer, and manual transfer actions; report paired results without inferring a participant preference.
 - Repeat the prior physical voice capability procedure from [feasibility.md](../001-discuss-diagram/feasibility.md) against the new whole-drawing tool before claiming spoken reads work. Record device arrangement and the actual result.
 - Validate reload versus Restore Closed Tab behavior in the supported browsers; record any browser limitation and image legibility limit in the change summary. If a required gate fails, fix it or return to the user with the specific unresolved behavior.

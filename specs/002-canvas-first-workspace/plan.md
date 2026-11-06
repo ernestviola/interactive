@@ -16,17 +16,17 @@ Open interactive directly on an open-ended drawing surface with a four-icon, bot
 
 **Storage**: Session-scoped browser checkpoints for strokes and 50-step history; in-memory broker sessions, leases, capabilities, and pending image bytes. No database or durable image store. Checkpoint size must be bounded and validated before acknowledging a new stroke.
 
-**Testing**: Vitest unit and contract suites; Playwright Chromium and WebKit browser suites; physical iPhone Safari and desktop gesture walkthrough; controlled MCP/voice capability check. No live provider in routine tests.
+**Testing**: Vitest unit and contract suites; Playwright Chromium and WebKit browser suites; physical iPhone Safari and desktop scripted walkthroughs; controlled MCP/voice capability check. Run a physical-iPhone performance procedure using the same input-to-visible-frame definition and 500-stroke fixture as desktop, recording sample counts and percent within 100 ms. Compare live-canvas reads with manual screenshot sharing across ten prepared sketch scenarios; this is a controlled evaluation without recruited participants. No live provider in routine tests.
 
 **Target Platform**: Current desktop Chrome/Chromium and Safari/WebKit; iPhone Safari for touch. Existing Next.js web app and local loopback broker. GCP remains the designated future cloud platform under the earlier [local-hosting decision](../001-discuss-diagram/planning-inputs.md); deployment is outside this feature.
 
 **Project Type**: Single Next.js web application plus its existing local Node broker/MCP helper.
 
-**Performance Goals**: Meet spec SC-005: at least 95% of drawing, pan, and zoom interactions show feedback within 100 ms for a representative 500-stroke drawing. Read requests return a fresh complete image or typed failure before the existing broker deadline.
+**Performance Goals**: Meet spec SC-005: at least 95% of drawing, pan, and zoom interactions show feedback within 100 ms for a representative 500-stroke drawing on both desktop and physical iPhone. Measure from input event time to the first frame containing the corresponding visual change, using the same instrumentation and a reported sample count for each device and interaction type. Read requests return a fresh complete image or typed failure before the existing broker deadline.
 
 **Constraints**: No fixed world boundary; no required selection, Connect button, in-app chat, idle-triggered image sending, or AI write method. One PNG per successful read within existing dimension/byte limits; fail if the full drawing cannot remain legible. Session data stays transient; 50 Undo steps; source remains editable during broker outages.
 
-**Scale/Scope**: One user's drawing per canvas session, possibly viewed through duplicated tabs. The existing 1,000-stroke upper bound is a starting safety cap, subject to checkpoint-size validation. No new drawing or image database.
+**Scale/Scope**: One user's drawing per canvas session, possibly viewed through duplicated tabs. Retain the existing 1,000-stroke safety cap and explain a rejected stroke without changing earlier work; checkpoint-size validation may reject a stroke sooner with a distinct storage message. The canvas has no spatial page edge. No new drawing or image database.
 
 ## Constitution Check
 
@@ -42,7 +42,7 @@ Open interactive directly on an open-ended drawing surface with a four-icon, bot
 | Next.js and future GCP deployment | PASS | PASS | Existing Next.js retained; Constitution v4.0.0 permits this local-only slice and requires GCP when cloud deployment is specified |
 | Voice capability gate | PASS | PASS | Prior physical-device feasibility is documented; recheck the changed whole-drawing tool before claiming new voice behavior |
 
-No constitution violation is proposed. The browser's page-close event is not a reliable revocation signal, so broker lease expiry is mandatory. A browser may restore tab-scoped storage after closing a tab; checkpoint presence alone cannot authorize recovery. Recovery must distinguish an open-tab reload or a live sibling from a restored closed final tab, and must fail closed to a blank drawing when continuity cannot be established. Browser-specific behavior requires validation before claiming this guarantee.
+No constitution violation is proposed. The browser's page-close event is not a reliable revocation signal, so broker lease expiry is mandatory. A browser may restore tab-scoped storage after closing a tab; checkpoint presence alone cannot authorize recovery. The candidate recovery signal is a browser-reported reload navigation plus a valid checkpoint, or a live sibling that supplies the current drawing. All other entries start blank unless the early browser feasibility gate proves another safe continuity signal. This candidate must be tested for reload, duplication, Restore Closed Tab, and browser restart on supported desktop and iPhone browsers; if a restored closed tab reports the same signal as a reload, stop before implementing recovery and revise the design. Do not claim the lifecycle guarantee until the physical-browser checks pass.
 
 ## Project Structure
 
@@ -83,7 +83,7 @@ tests/
 
 ## Phase 0: Research Decisions
 
-[research.md](research.md) records the selected world-coordinate rendering, gesture state machine, tab-session recovery, cross-tab sequencing, 50-step history, automatic broker read grant, one-image capture, validation approach, and rejected alternatives. No unresolved technical question remains.
+[research.md](research.md) records the selected world-coordinate rendering, gesture state machine, tab-session recovery candidate, cross-tab sequencing, 50-step history, automatic broker read grant, one-image capture, validation approach, and rejected alternatives. The reload-versus-closed-tab-restore signal is an explicit feasibility gate before product implementation.
 
 ## Phase 1: Design and Contracts
 
@@ -107,6 +107,6 @@ Write failing behavioral tests before changing drawing state, gesture transition
 ## Risks and limits to verify
 
 - Session storage quota may vary. A stroke must not be acknowledged unless the updated checkpoint can be written; test the 500-stroke workload and quota failure.
-- Browser duplication and background-tab scheduling differ. Verify join, coordinator handoff, reload, final-tab close, and broker restart on supported browsers.
+- Browser duplication and background-tab scheduling differ. Prove the recovery signal before product implementation; then verify join, coordinator handoff, reload, final-tab close, Restore Closed Tab, and broker restart on supported browsers.
 - One image can lose detail when strokes are far apart. Return `CAPTURE_UNREADABLE` at a measured legibility threshold rather than silently shrinking the drawing beyond use.
 - `pagehide` is best effort. The broker lease must revoke reads when a close event is missed, including mobile browser termination.

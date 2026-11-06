@@ -105,6 +105,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - If the connection drops or the last tab in a canvas session closes during a read, do not reuse a revoked permission or stale image.
 - Browser restoration of a closed final tab must not be mistaken for a reload of an open tab; a restored checkpoint alone is insufficient to resume the ended drawing.
 - If a new stroke cannot be retained in the session's recovery storage, do not acknowledge it as committed; keep the earlier drawing and explain that the new stroke was not saved.
+- If the existing 1,000-stroke safety cap is reached, do not acknowledge another stroke as committed; keep earlier work and explain the drawing limit. This cap limits stored actions, not where the user may draw.
 - Undo, closing the tab, and ending a session cannot retract an image already delivered to ChatGPT.
 
 ## Requirements *(mandatory)*
@@ -125,7 +126,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - **FR-012**: Each read MUST include capture time and a snapshot identity; later edits and reads MUST NOT alter earlier snapshots.
 - **FR-013**: Empty drawing, ambiguous canvas targeting, unavailable connection, unreadable whole-drawing image, and capture timeout MUST produce distinct, actionable results without substituting stale or partial images.
 - **FR-014**: Drawing, navigation, and history MUST remain usable during AI reads and connection outages. AI reads and failures MUST NOT edit the canvas.
-- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading an open tab MUST restore its committed strokes and drawing history. Closing the last tab MUST end that drawing session; using Restore Closed Tab afterward MUST open a blank new drawing and MUST NOT restore the ended drawing or its AI read access. A stored checkpoint alone MUST NOT authorize recovery of an ended session. A new stroke MUST NOT be acknowledged as committed unless its recovery copy can be retained; failure MUST preserve earlier work and state that the new stroke was not saved. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
+- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading an open tab MUST restore its committed strokes and drawing history. Closing the last tab MUST end that drawing session; using Restore Closed Tab afterward MUST open a blank new drawing and MUST NOT restore the ended drawing or its AI read access. A stored checkpoint alone MUST NOT authorize recovery of an ended session. A new stroke MUST NOT be acknowledged as committed unless its recovery copy can be retained; failure MUST preserve earlier work and state that the new stroke was not saved. The existing 1,000-stroke safety cap MUST reject an additional stroke without changing earlier work and MUST explain the drawing limit. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
 - **FR-016**: Duplicating an open canvas tab MUST show the same drawing in both tabs. Committed strokes, Undo, and Redo in either tab MUST update the other tab without manual synchronization. Closing one tab MUST NOT end the shared canvas session while another tab remains open.
 
 ### Key Entities *(include if feature involves data)*
@@ -140,13 +141,14 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 
 ### Measurable Outcomes
 
-- **SC-001**: In a five-person walkthrough across desktop and touch devices, at least four people begin drawing within 10 seconds of opening the app without guidance.
-- **SC-002**: In the same walkthrough, at least four people draw, pan, zoom, undo, and redo without assistance after seeing the toolbar, and return to an earlier mark after panning away.
+- **SC-001**: In ten scripted fresh-open trials on supported desktop and physical iPhone Safari devices, the first stroke becomes visible within 10 seconds of navigation without a Start, Connect, export, or setup action.
+- **SC-002**: In ten scripted desktop and physical iPhone Safari walkthroughs, the tester draws, pans, zooms, undoes, redoes, and returns to an earlier mark after panning away in every run, with no unintended stroke or lost mark. These are functional walkthroughs, not a claim about unobserved first-time-user usability.
 - **SC-003**: Across all scripted touch gesture transitions and cancellations, zero unintended strokes are committed and existing strokes remain unchanged.
 - **SC-004**: In all scripted AI reads, the image includes every committed stroke from the intended canvas, excludes other canvas sessions, and reflects one consistent revision; empty or ambiguous reads fail clearly.
 - **SC-005**: On supported desktop and iPhone test devices with a 500-stroke drawing of 50–100 points per stroke spread across five starting views, at least 95% of drawing, panning, and zooming interactions show visible feedback within 100 milliseconds.
 - **SC-006**: In at least eight of ten prepared sketch discussions, the AI correctly refers to two preidentified visible elements, acknowledges one intentionally ambiguous mark as uncertain, and makes no claim that the sketch proves an implementation exists.
 - **SC-007**: In all scripted connection interruptions, users continue drawing and recover access without losing the open session's strokes.
+- **SC-008**: For ten prepared sketch scenarios, each with a predefined actionable design gap or decision, run separate fresh ChatGPT conversations using the live-canvas read and manual screenshot sharing, alternating which flow goes first. Record for each attempt whether the predefined gap or decision is addressed, elapsed time from completed sketch to usable answer, and manual transfer actions. At least eight of ten live-canvas runs MUST address the predefined gap or decision. Report paired results; claim an advantage over screenshot sharing only if the live-canvas flow has at least as many successful outcomes, no slower median time, and fewer manual transfer actions. This is a controlled comparison, not a participant study.
 
 ## Assumptions
 

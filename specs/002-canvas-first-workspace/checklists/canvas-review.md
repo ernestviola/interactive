@@ -38,7 +38,7 @@
 ## Outcome and dependency quality
 
 - [x] CHK019 Can the 500-stroke interaction target be measured on both desktop and physical iPhone devices using the stated threshold? [Measurability, Spec §SC-005]
-- [x] CHK020 Are the five-person usability and ten-discussion outcomes expressed with counts and observable success conditions? [Measurability, Spec §SC-001–SC-002, SC-006]
+- [x] CHK020 Are the scripted device walkthrough, ten-discussion, and paired screenshot-comparison outcomes expressed with counts and observable success conditions without implying recruited participants? [Measurability, Spec §SC-001–SC-002, SC-006, SC-008]
 - [x] CHK021 Are the external ChatGPT connection, local hosting, and voice capability assumptions explicit enough to avoid claiming unsupported behavior? [Assumption, Spec §Assumptions, Plan §Technical Context]
 - [x] CHK022 Are the spec, plan, and contract aligned on transient storage, duplicated tabs, 50-step history, and one-image whole-drawing reads? [Consistency, Spec §FR-006, FR-011, FR-015–FR-016; Plan §Summary]
 
@@ -47,5 +47,6 @@
 - Reviewer pass completed on 2026-11-05: all 22 requirements-quality criteria are satisfied by the linked specification, plan, and contract. These markers do not assert that application behavior has been implemented or tested.
 - The built-in [spec quality checklist](requirements.md) has a separate lifecycle under Specify and Clarify.
 - Spec Kit Implement may read this checklist state as a gate; it must not change the markers.
-- Evidence: FR-001–FR-008 and User Stories 1, 2, and 4 cover drawing, gestures, history, toolbar, and accessibility (CHK001–CHK007); FR-013, FR-015–FR-016, User Stories 1 and 3, and the session contract cover recovery, duplicated tabs, and failure cases (CHK008–CHK012); FR-009–FR-015 and User Story 3 cover on-demand read scope, errors, legibility, provenance, and retention (CHK013–CHK018); SC-001–SC-007, assumptions, and plan technical context cover measurable outcomes and dependencies (CHK019–CHK022).
+- Evidence: FR-001–FR-008 and User Stories 1, 2, and 4 cover drawing, gestures, history, toolbar, and accessibility (CHK001–CHK007); FR-013, FR-015–FR-016, User Stories 1 and 3, and the session contract cover recovery, duplicated tabs, and failure cases (CHK008–CHK012); FR-009–FR-015 and User Story 3 cover on-demand read scope, errors, legibility, provenance, and retention (CHK013–CHK018); SC-001–SC-008, assumptions, and plan technical context cover measurable outcomes and dependencies (CHK019–CHK022).
 - Browser restore behavior, storage quota, physical-device latency, and voice capability remain implementation validation risks under the plan. Browser restore must be proven on supported browsers before the user-visible lifecycle guarantee is claimed.
+- CHK020 was re-reviewed after replacing the proposed participant study with scripted device walkthroughs and ten paired prepared-sketch scenarios; the criterion remains satisfied for requirements quality, not implementation evidence.
