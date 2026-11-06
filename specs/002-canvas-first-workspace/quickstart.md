@@ -34,7 +34,7 @@ Start the local app with `pnpm run dev`. Open the canvas in desktop Chrome or Sa
 | Open space | Draw, pan away, draw again, return | Both strokes remain in the same world positions; no page edge |
 | Desktop navigation | Wheel/pinch around a point, Space drag, hand drag | Zoom anchors correctly; pan makes no stroke or Undo entry |
 | Touch navigation | Draw with one finger; add second finger; pan/pinch; use hand | No partial ink from transition; one-finger hand pans |
-| Toolbar | Hover, keyboard focus, screen reader, touch-hold labels | Four bottom-centered icons have usable names and state |
+| Toolbar | Hover, keyboard focus/activation, screen reader, touch press-and-hold | Four bottom-centered icons have usable names and state; holding reveals a label without activating |
 | History | Draw 51 strokes; Undo repeatedly; Redo; draw again | Exactly 50 recent strokes are undoable; older ink remains; new stroke clears Redo |
 | Reload | Draw, undo once, reload the same tab | Drawing and 50-step history return; current view can continue |
 | Duplicate | Duplicate tab; draw and Undo in each | Both show one synchronized drawing/history; neither requires manual sync |
@@ -48,7 +48,7 @@ For read accuracy, place strokes far apart and near opposite edges of the drawn 
 
 ## Outcome gates
 
-- Measure the 500-stroke workload against SC-005: at least 95% of drawing, pan, and zoom interactions show visible feedback within 100 ms on supported desktop and iPhone devices.
-- Run the five-person usability walkthrough in SC-001/SC-002 and the ten sketch-discussion check in SC-006. Record actual counts, not inferred passes.
+- Measure the specified 500-stroke workload against SC-005: at least 95% of drawing, pan, and zoom interactions show visible feedback within 100 ms on supported desktop and iPhone devices.
+- Run the five-person usability walkthrough in SC-001/SC-002 and the ten prepared sketch discussions in SC-006. Preidentify two visible elements and one ambiguous mark in each discussion, then record actual counts, not inferred passes.
 - Repeat the prior physical voice capability procedure from [feasibility.md](../001-discuss-diagram/feasibility.md) against the new whole-drawing tool before claiming spoken reads work. Record device arrangement and the actual result.
 - Record known browser session-restore and image legibility limits in the change summary. If a required gate fails, fix it or return to the user with the specific unresolved behavior.
