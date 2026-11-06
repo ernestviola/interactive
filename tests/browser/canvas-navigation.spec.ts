@@ -1,0 +1,108 @@
+import { test, expect } from './fixture';
+import { ready, drag, read } from './helpers';
+
+test('changing to Space or Hand during a stroke cancels ink and keeps reads available', async ({ page }) => {
+  await ready(page);
+  const canvas = page.getByLabel('Sketch canvas');
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas missing');
+  const start = async () => {
+    await page.mouse.move(box.x + 180, box.y + 180);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 220, box.y + 210);
+    await expect(canvas).toHaveAttribute('data-gesture', /[1-9]/);
+  };
+  await start();
+  await page.keyboard.down('Space');
+  await expect(canvas).toHaveAttribute('data-gesture', '0');
+  await page.mouse.move(box.x + 290, box.y + 250);
+  await page.mouse.up();
+  await page.keyboard.up('Space');
+  await expect(canvas).toHaveAttribute('data-strokes', '0');
+  await start();
+  await page.getByRole('button', { name: 'Hand', exact: true }).evaluate(element => (element as HTMLButtonElement).click());
+  await expect(canvas).toHaveAttribute('data-gesture', '0');
+  await page.mouse.up();
+  await expect(canvas).toHaveAttribute('data-strokes', '0');
+  const result = await read();
+  expect(result.isError).toBe(true);
+  expect(result.content.find(item => item.type === 'text')?.text).toContain('NO_DRAWING');
+});
+
+test('desktop wheel zoom and hand pan never create ink', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const canvas = page.getByLabel('Sketch canvas');
+  await expect(canvas).toBeVisible();
+  await page.getByRole('button', { name: 'Hand' }).click();
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas missing');
+  await page.mouse.move(box.x + 100, box.y + 100);
+  await page.mouse.down(); await page.mouse.move(box.x + 250, box.y + 180); await page.mouse.up();
+  if (testInfo.project.name === 'chromium') await page.mouse.wheel(0, -250);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+});
+
+test('Space shows a grab cursor and pans after clicking the toolbar', async ({ page }) => {
+  await ready(page);
+  const canvas = page.getByLabel('Sketch canvas');
+  await drag(page, [120, 120], [180, 160]);
+  const before = await canvas.evaluate(element => (element as HTMLCanvasElement).toDataURL());
+  await page.getByRole('toolbar', { name: 'Drawing controls' }).getByRole('button', { name: 'Draw', exact: true }).click();
+  await expect(canvas).not.toBeFocused();
+  const drawTool = page.getByRole('toolbar', { name: 'Drawing controls' }).getByRole('button', { name: 'Draw', exact: true });
+  const handTool = page.getByRole('toolbar', { name: 'Drawing controls' }).getByRole('button', { name: 'Hand', exact: true });
+  await expect(drawTool).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.down('Space');
+  await expect(drawTool).toHaveAttribute('aria-pressed', 'false');
+  await expect(handTool).toHaveAttribute('aria-pressed', 'true');
+  await expect(canvas).toHaveCSS('cursor', 'grab');
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas missing');
+  await page.mouse.move(box.x + 300, box.y + 200);
+  await page.mouse.down();
+  await expect(canvas).toHaveCSS('cursor', 'grabbing');
+  await page.mouse.move(box.x + 400, box.y + 240);
+  await page.mouse.up();
+  expect(await canvas.evaluate(element => (element as HTMLCanvasElement).toDataURL())).not.toBe(before);
+  await expect(canvas).toHaveAttribute('data-strokes', '1');
+  await page.keyboard.up('Space');
+  await expect(drawTool).toHaveAttribute('aria-pressed', 'true');
+  await expect(handTool).toHaveAttribute('aria-pressed', 'false');
+  await expect(canvas).toHaveCSS('cursor', 'crosshair');
+  await handTool.focus();
+  await page.keyboard.down('Space');
+  await expect(handTool).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.up('Space');
+  await expect(drawTool).toHaveAttribute('aria-pressed', 'true');
+  await expect(handTool).toBeFocused();
+  await handTool.click();
+  await page.keyboard.down('Space');
+  await page.keyboard.up('Space');
+  await expect(handTool).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('Space pans after clicking Fit without focusing it', async ({ page }) => {
+  await ready(page);
+  const canvas = page.getByLabel('Sketch canvas');
+  const fit = page.getByRole('button', { name: /Fit drawing/ });
+  await drag(page, [120, 120], [180, 160]);
+  await fit.click();
+  await expect(fit).not.toBeFocused();
+  await page.keyboard.down('Space');
+  await expect(canvas).toHaveCSS('cursor', 'grab');
+  await expect(page.getByRole('toolbar', { name: 'Drawing controls' }).getByRole('button', { name: 'Hand' })).toHaveAttribute('aria-pressed', 'true');
+  const before = await canvas.evaluate(element => (element as HTMLCanvasElement).toDataURL());
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas missing');
+  await page.mouse.move(box.x + 300, box.y + 200);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 400, box.y + 250);
+  await page.mouse.up();
+  expect(await canvas.evaluate(element => (element as HTMLCanvasElement).toDataURL())).not.toBe(before);
+  await page.keyboard.up('Space');
+  await fit.focus();
+  await fit.evaluate(element => { element.dataset.spaceClicks = '0'; element.addEventListener('click', () => { element.dataset.spaceClicks = String(Number(element.dataset.spaceClicks) + 1); }); });
+  await page.keyboard.press('Space');
+  await expect(fit).toHaveAttribute('data-space-clicks', '0');
+  await expect(canvas).toHaveAttribute('data-strokes', '1');
+});

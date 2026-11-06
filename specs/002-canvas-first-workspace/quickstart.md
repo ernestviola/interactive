@@ -1,0 +1,56 @@
+# Quickstart Validation: Canvas-First Open Workspace
+
+Use this guide after implementation. It validates the behavior in [spec.md](spec.md) through the [canvas session contract](contracts/canvas-session.md). The previous selected-region tests must be updated before the full suite is expected to pass.
+
+## Prerequisites
+
+- The feature branch is checked out, Git guards are installed, and the configured local MCP helper is available for the on-demand read scenario.
+- Node and pnpm versions from `package.json` are available. Install dependencies with `pnpm install --frozen-lockfile`.
+- Before changing Next.js code, read the relevant versioned guides in `node_modules/next/dist/docs/`, per `AGENTS.md`.
+- For physical-device checks, an iPhone running Safari can reach the local web app by the trusted LAN origin described in `README.md`. The broker remains loopback-only on the Mac.
+
+## Automated checks
+
+Run focused checks as behavior is added, then the full local gate:
+
+```sh
+pnpm run test:unit
+pnpm run test:contract
+pnpm run test:browser
+pnpm run typecheck
+pnpm run lint
+pnpm run build
+```
+
+The covered state, recovery, access, and capture changes require a recorded failing behavioral test before each implementation change, then a passing result. Test runs must not save PNGs, secrets, screenshots, traces, or videos to the repository.
+
+## End-to-end walkthrough
+
+Start the local app with `pnpm run dev`. Open the canvas in desktop Chrome or Safari, then repeat touch cases on physical iPhone Safari.
+
+| Scenario | Action | Expected result |
+| --- | --- | --- |
+| Direct start | Open the app | Canvas is ready immediately; no welcome or Connect action |
+| Open space | Draw, pan away, draw again, return | Both strokes remain in the same world positions; no page edge |
+| Desktop navigation | Wheel/pinch around a point, Space drag, hand drag | Zoom anchors correctly; pan makes no stroke or Undo entry |
+| Touch navigation | Draw with one finger; add second finger; pan/pinch; use hand | No partial ink from transition; one-finger hand pans |
+| Toolbar | Hover, keyboard focus/activation, screen reader, touch press-and-hold | Four bottom-centered icons have usable names and state; holding reveals a label without activating |
+| History | Draw 51 strokes; Undo repeatedly; Redo; draw again | Exactly 50 recent strokes are undoable; older ink remains; new stroke clears Redo |
+| Reload | Draw, undo once, reload the same tab | Drawing and 50-step history return; current view can continue |
+| Restore closed final tab | Draw, close the only canvas tab, use browser Restore Closed Tab | New canvas is blank; old history and AI read access do not return |
+| Duplicate | Duplicate tab; draw and Undo in each | Both show one synchronized drawing/history; neither requires manual sync |
+| Read | Ask configured ChatGPT helper to read | One padded PNG includes every committed stroke from one revision, with fresh metadata |
+| Re-read | Edit, ask again | New image reflects edit; earlier delivered image remains unchanged |
+| Empty/ambiguous | Read empty drawing; open distinct drawings and read | Distinct actionable errors; no stale or wrong image |
+| Outage | Stop broker while drawing; restore it | Drawing continues, session recovers, no old grant can read after revocation |
+| Final close | Close last tab; wait for lease expiry if needed | Future reads fail; app-managed image bytes are not retained |
+| Drawing limit | Reach the existing 1,000-stroke cap; attempt one more stroke | Earlier ink remains; new stroke is not committed and a drawing-limit notice appears |
+
+For read accuracy, place strokes far apart and near opposite edges of the drawn content. Verify all are in the image with their relative layout preserved. Also test a spread that would make one image unreadable and confirm `CAPTURE_UNREADABLE` rather than a misleading partial image. Test a full checkpoint quota separately: the rejected new stroke is clearly reported while previously committed work remains.
+
+## Outcome gates
+
+- Measure the specified 500-stroke workload against SC-005 on supported desktop and physical iPhone devices with the same input-event-to-first-changed-frame method. Record the device, browser, sample count, and percentage within 100 ms separately for drawing, pan, and zoom; at least 95% of each interaction type must meet the threshold on each device.
+- Run ten scripted fresh-open and drawing/navigation walkthroughs across desktop and physical iPhone Safari for SC-001/SC-002; record actual timing and pass counts, without treating these as a participant usability study. Run ten prepared sketch discussions for SC-006, preidentifying two visible elements and one ambiguous mark in each. For SC-008, prepare ten sketch scenarios with a predefined actionable gap or decision, then use separate fresh ChatGPT conversations for the live-canvas and manual-screenshot flows, alternating which runs first. Record per-flow success, elapsed time from completed sketch to usable answer, and manual transfer actions; report paired results without inferring a participant preference.
+- Repeat the prior physical voice capability procedure from [feasibility.md](../001-discuss-diagram/feasibility.md) against the new whole-drawing tool before claiming spoken reads work. Record device arrangement and the actual result.
+- Validate reload versus Restore Closed Tab behavior in the supported browsers; record any browser limitation and image legibility limit in the change summary. If a required gate fails, fix it or return to the user with the specific unresolved behavior.

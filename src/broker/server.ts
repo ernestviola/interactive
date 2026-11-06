@@ -13,9 +13,10 @@ import { newCapability } from './capabilities';
 import { loadLocalCapability } from '../../experiments/voice-mcp/local-config';
 
 const empty = z.object({}).strict();
+const openCanvas = z.object({ canvasId: z.string().uuid().optional(), tabId: z.string().uuid().optional() }).strict();
 async function body(req: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []; let size = 0;
-  for await (const chunk of req) { const bytes = Buffer.from(chunk); size += bytes.length; if (size > 6 * 1024 * 1024) throw new SketchError('PAYLOAD_TOO_LARGE', 'Use a smaller selected region.', 413); chunks.push(bytes); }
+  for await (const chunk of req) { const bytes = Buffer.from(chunk); size += bytes.length; if (size > 6 * 1024 * 1024) throw new SketchError('PAYLOAD_TOO_LARGE', 'Use a smaller drawing image.', 413); chunks.push(bytes); }
   return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
 }
 
@@ -39,14 +40,11 @@ export function createBroker(trustedOrigins: string[] = [], bootstrap = newCapab
       if (req.headers['x-sketch-client'] !== '1') return json(403);
       const parts = new URL(req.url ?? '/', 'http://localhost').pathname.split('/').filter(Boolean);
       if (parts[0] !== 'sessions') return json(404);
-      if (parts.length === 1 && req.method === 'POST') { empty.parse(await body(req)); return json(201, sessions.create()); }
+      if (parts.length === 1 && req.method === 'POST') { const input = openCanvas.parse(await body(req)); return json(201, sessions.create(input.canvasId, input.tabId)); }
       const id = parts[1]; if (!id) return json(404);
       const session = sessions.owner(id, token);
       if (parts.length === 2 && req.method === 'DELETE') { sessions.end(id, token); return json(204); }
-      if (parts.length === 3 && parts[2] === 'pair' && req.method === 'POST') {
-        empty.parse(await body(req)); const readCapability = sessions.pair(id, token);
-        localClient.pair(session, readCapability); return json(200, { readCapability });
-      }
+      if (parts.length === 4 && parts[2] === 'tabs' && req.method === 'DELETE') { sessions.leave(id, token, parts[3]); return json(204); }
       if (parts.length === 3 && parts[2] === 'heartbeat' && req.method === 'POST') {
         empty.parse(await body(req)); sessions.heartbeat(id, token);
         return json(200, { leaseExpiresAt: session.leaseExpiresAt, lastRead: session.lastRead, paired: !!session.readHash, reading: captures.busy(id) });

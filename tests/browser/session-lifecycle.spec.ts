@@ -1,27 +1,86 @@
 import { test, expect } from './fixture';
-import { ready, drag, pair, read } from './helpers';
+import { ready, drag, read } from './helpers';
 
-test('background-style lease expiry preserves ink and reconnects explicitly with a fresh key', async ({ page, sketchBroker }) => {
-  await ready(page); await drag(page, [60, 60], [180, 180]); await drag(page, [20, 20], [250, 250], 'Select');
-  const previous = await pair(page); const first = await read(previous);
-  expect(first.content.some(c => c.type === 'image')).toBe(true);
-  const other = await page.context().newPage(); await other.bringToFront();
-  sketchBroker.advanceTime(30_000); await page.bringToFront(); await other.close();
-  await expect(page.getByText('1 stroke', { exact: true })).toBeVisible();
-  await expect(read(previous)).rejects.toThrow();
-  const current = await pair(page); expect(current !== previous).toBe(true);
-  const next = await read(current); expect(next.content.some(c => c.type === 'image')).toBe(true);
-  await expect(page.getByText('1 stroke', { exact: true })).toBeVisible();
+test('a duplicated tab joins latest ink and shares Undo across tabs', async ({ page, context }) => {
+  await ready(page);
+  await drag(page, [100, 100], [180, 180]);
+  await expect(page.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  const popupEvent = context.waitForEvent('page');
+  await page.evaluate(() => window.open(location.href, '_blank'));
+  const sibling = await popupEvent;
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-ready', 'true');
+  await drag(sibling, [240, 240], [300, 300]);
+  await expect(page.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '2');
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  await sibling.close();
 });
 
-test('broker restart and session end revoke earlier keys while surviving local ink can be paired anew', async ({ page, sketchBroker }) => {
-  await ready(page); await drag(page, [50, 50], [150, 150]); await drag(page, [20, 20], [220, 220], 'Select');
-  const previous = await pair(page); await read(previous);
-  await sketchBroker.restart(); await expect(read(previous)).rejects.toThrow();
-  await drag(page, [80, 100], [200, 200]); await expect(page.getByText('2 strokes', { exact: true })).toBeVisible();
-  const current = await pair(page); expect(current !== previous).toBe(true);
-  expect((await read(current)).content.some(c => c.type === 'image')).toBe(true);
-  page.once('dialog', dialog => dialog.accept()); await page.getByRole('button', { name: 'End session', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Start drawing' })).toBeVisible();
-  await expect(read(current)).rejects.toThrow();
+test('a duplicate waits for a delayed live coordinator instead of splitting the session', async ({ page, context }) => {
+  await ready(page);
+  await drag(page, [100, 100], [180, 180]);
+  await expect(page.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  const sessionId = await page.evaluate(() => JSON.parse(sessionStorage.getItem('interactive:canvas-checkpoint:v1') ?? 'null')?.sessionId);
+  await page.evaluate(() => {
+    const send = BroadcastChannel.prototype.postMessage;
+    BroadcastChannel.prototype.postMessage = function (message: unknown) {
+      if ((message as { type?: string })?.type === 'state') setTimeout(() => send.call(this, message), 500);
+      else send.call(this, message);
+    };
+  });
+  const opened = context.waitForEvent('page');
+  await page.evaluate(() => window.open(location.href, '_blank'));
+  const sibling = await opened;
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-ready', 'true');
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  expect(await sibling.evaluate(() => JSON.parse(sessionStorage.getItem('interactive:canvas-checkpoint:v1') ?? 'null')?.sessionId)).toBe(sessionId);
+  await sibling.close();
+});
+
+test('a follower does not acknowledge an unsaved shared stroke before sole-tab reload', async ({ page, context }) => {
+  await ready(page);
+  await drag(page, [100, 100], [180, 180]);
+  const opened = context.waitForEvent('page');
+  await page.evaluate(() => window.open(location.href, '_blank'));
+  const sibling = await opened;
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-ready', 'true');
+  await sibling.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
+  await drag(page, [220, 220], [300, 300]);
+  await expect(page.locator('.canvas-alert')).toContainText('not saved');
+  await expect(page.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  await page.close();
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  await expect(sibling.locator('.canvas-alert')).toContainText('not saved');
+  await sibling.reload();
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+});
+
+test('reload keeps the drawing; a fresh tab after final close starts blank', async ({ page, context }) => {
+  await ready(page); await drag(page, [100, 100], [180, 180]);
+  await page.reload();
+  await expect(page.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  const oldCheckpoint = await page.evaluate(() => sessionStorage.getItem('interactive:canvas-checkpoint:v1'));
+  await page.close();
+  const fresh = await context.newPage();
+  await fresh.addInitScript(raw => { if (raw) sessionStorage.setItem('interactive:canvas-checkpoint:v1', raw); }, oldCheckpoint);
+  await ready(fresh);
+  await expect(fresh.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '0');
+});
+
+test('an empty duplicate joins the same canvas and can take over after the original closes', async ({ page, context }) => {
+  await ready(page);
+  const originalId = await page.evaluate(() => JSON.parse(sessionStorage.getItem('interactive:canvas-checkpoint:v1') ?? 'null')?.sessionId);
+  const popupEvent = context.waitForEvent('page');
+  await page.evaluate(() => window.open(location.href, '_blank'));
+  const sibling = await popupEvent;
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-ready', 'true');
+  const siblingId = await sibling.evaluate(() => JSON.parse(sessionStorage.getItem('interactive:canvas-checkpoint:v1') ?? 'null')?.sessionId);
+  expect(siblingId).toBe(originalId);
+  await page.close();
+  await drag(sibling, [200, 200], [260, 260]);
+  await expect(sibling.getByLabel('Sketch canvas')).toHaveAttribute('data-strokes', '1');
+  const result = await read();
+  expect(result.isError).not.toBe(true);
 });

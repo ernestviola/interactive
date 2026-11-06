@@ -18,6 +18,13 @@ that check required on `main`, disallow force pushes and deletion, and disable b
 The installer uses this checkout's absolute hook path so linked worktrees share the guards;
 rerun it after moving this checkout (or update the hook path if removing it).
 
+## UI design reference
+
+The editable Figma file contains the current UI copy and a separate canvas-first redesign concept:
+[Sketch UI review copy](https://www.figma.com/design/aIalohp0XclbOEWbNv3QYh).
+Use it to review proposed UI changes before implementing them in this repository. The design
+file is a review artifact; the application source remains the implementation reference.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

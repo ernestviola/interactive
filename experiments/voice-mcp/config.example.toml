@@ -1,7 +1,7 @@
 # One-time configuration for this checkout. No bearer value or environment export needed.
-[mcp_servers.sketch_voice]
+[mcp_servers.interactive]
 url = "http://127.0.0.1:3001/mcp"
-http_headers_helper = "node /Users/ernestviola/.worktrees/cba8/interactive/experiments/voice-mcp/auth-headers.ts"
-enabled_tools = ["read_selected_sketch"]
+http_headers_helper = "node /absolute/path/to/interactive/experiments/voice-mcp/auth-headers.ts"
+enabled_tools = ["read_current_drawing"]
 startup_timeout_sec = 20
 tool_timeout_sec = 15

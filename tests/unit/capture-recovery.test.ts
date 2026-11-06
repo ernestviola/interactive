@@ -9,7 +9,7 @@ it('uses the 10s deadline and cancellation to release the single pending slot; l
   await vi.advanceTimersByTimeAsync(10_000); expect((await pending).code).toBe('CAPTURE_TIMEOUT'); expect(captures.busy(owner.id)).toBe(false);
   const controller = new AbortController(); const retry = captures.read(read, controller.signal).catch(error => error);
   const next = captures.claim(owner.id, owner.ownerCapability)!; expect(next.requestId !== first.requestId).toBe(true);
-  expect(() => captures.submit(owner.id, owner.ownerCapability, first.requestId, { generation: first.generation, pairingEpoch: first.pairingEpoch, error: 'EMPTY_SELECTION' })).toThrow();
+  expect(() => captures.submit(owner.id, owner.ownerCapability, first.requestId, { generation: first.generation, pairingEpoch: first.pairingEpoch, error: 'NO_DRAWING' })).toThrow();
   controller.abort(); expect((await retry).code).toBe('CAPTURE_FAILED'); expect(captures.busy(owner.id)).toBe(false);
 });
 

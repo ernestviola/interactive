@@ -1,13 +1,37 @@
 import { test, expect } from './fixture';
-import { ready } from './helpers';
-test('controls are keyboard-activated, focused, announced, and have at least 44 × 44 CSS pixels touch targets', async ({ page }) => {
+import { ready, drag } from './helpers';
+
+test('four icon controls have names, selection state, keyboard activation, and touch-size targets', async ({ page }) => {
   await ready(page);
-  const select = page.getByRole('button', { name: 'Select', exact: true }); await select.focus(); await page.keyboard.press('Enter');
-  await expect(select).toHaveAttribute('aria-pressed', 'true');
-  expect(await select.evaluate(element => getComputedStyle(element).outlineStyle !== 'none')).toBe(true);
-  await expect(page.getByRole('status').first()).toBeVisible();
-  for (const label of ['Draw', 'Select', 'Undo', 'Redo', 'Connect', 'End session']) {
-    const button = page.getByRole('button', { name: label, exact: true });
-    const rect = await button.boundingBox(); expect(!!rect && rect.width >= 44 && rect.height >= 44).toBe(true);
+  const toolbar = page.getByRole('toolbar', { name: 'Drawing controls' });
+  await expect(toolbar.getByRole('button')).toHaveCount(4);
+  const names = await toolbar.getByRole('button').allTextContents();
+  expect(names).toEqual(['Draw', 'Hand', 'Undo', 'Redo']);
+  const draw = toolbar.getByRole('button', { name: 'Draw' });
+  const hand = toolbar.getByRole('button', { name: 'Hand' });
+  await expect(draw).toHaveAttribute('aria-pressed', 'true');
+  await hand.focus(); await page.keyboard.press('Enter');
+  await expect(hand).toHaveAttribute('aria-pressed', 'true');
+  await expect(draw).toHaveAttribute('aria-pressed', 'false');
+  await draw.focus(); await page.keyboard.press('Space');
+  await expect(hand).toHaveAttribute('aria-pressed', 'true');
+  await expect(draw).toHaveAttribute('aria-pressed', 'false');
+  await draw.focus(); await page.keyboard.press('Enter');
+  await expect(draw).toHaveAttribute('aria-pressed', 'true');
+  await expect(draw).toBeFocused();
+  for (const button of await toolbar.getByRole('button').all()) {
+    const box = await button.boundingBox(); expect(box?.width).toBeGreaterThanOrEqual(44); expect(box?.height).toBeGreaterThanOrEqual(44);
   }
+  await drag(page, [100, 100], [160, 160]);
+  await expect(toolbar.getByRole('button', { name: 'Undo' })).toBeEnabled();
+});
+
+test('touch hold reveals a temporary label without changing the selected tool', async ({ page }) => {
+  await ready(page);
+  const hand = page.getByRole('button', { name: 'Hand' });
+  await hand.evaluate(element => element.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch', pointerId: 31 })));
+  await expect(hand.locator('.tool-label')).toBeVisible({ timeout: 1000 });
+  await hand.evaluate(element => element.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerType: 'touch', pointerId: 31 })));
+  await hand.click();
+  await expect(page.getByRole('toolbar', { name: 'Drawing controls' }).getByRole('button', { name: 'Draw', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
