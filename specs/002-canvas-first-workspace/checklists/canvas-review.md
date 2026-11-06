@@ -47,3 +47,5 @@
 - Leave items unchecked until a reviewer evaluates the requirements. A reviewer may add findings beside any item.
 - The built-in [spec quality checklist](requirements.md) has a separate lifecycle under Specify and Clarify.
 - Spec Kit Implement may read this checklist state as a gate; it must not change the markers.
+- Assisted evidence pass, 2026-11-05: CHK001–CHK022 now have corresponding written requirements. The pass tightened touch label, keyboard, performance-workload, and discussion-scoring language in the spec. This note is not reviewer approval; markers remain unchecked.
+- Browser restore behavior, storage quota, and physical-device latency remain implementation validation risks under the plan, not unresolved product choices.

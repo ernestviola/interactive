@@ -98,7 +98,7 @@ tests/
 3. Keep the browser's acknowledged drawing as the capture source. Session-scoped checkpoints enable reload; a cross-tab coordinator orders drawing actions and supplies the latest revision to the capture tab. On coordination uncertainty, AI reads fail safely while local drawing remains usable.
 4. Adapt the broker to register a live canvas automatically and grant only the configured helper read access. Resolve one session, not one tab. Distinct active sessions produce an ambiguity error. Revoke on explicit final close or lease expiry; generations reject late images.
 5. Replace selected-region capture with padded whole-stroke bounds. Freeze one revision, fit within image limits only while legible, validate PNG and metadata, and discard bytes after delivery.
-6. Build the compact UI from the Figma reference. Keep labels available through hover/focus and touch discovery, and keep sharing explanations accessible without permanent canvas copy.
+6. Build the compact UI from the Figma reference. Keep labels available through hover/focus and touch press-and-hold, expose applicable selected/disabled states, and keep sharing explanations accessible without permanent canvas copy.
 
 ### Validation order
 

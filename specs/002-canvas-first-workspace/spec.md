@@ -90,8 +90,8 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 
 1. **Given** the canvas is open, **When** I look for tools on desktop or mobile, **Then** a compact toolbar is centered along the bottom with pen, hand, Undo, and Redo in the same order.
 2. **Given** I use a pointer or keyboard, **When** I hover over or focus an icon, **Then** its action name appears; the pen is named “Draw.”
-3. **Given** I use a screen reader, **When** I focus an icon, **Then** its action and selected state are announced.
-4. **Given** I use touch without hover, **When** I need a tool name, **Then** an equivalent discoverable label is available without permanent button text.
+3. **Given** I use a keyboard or screen reader, **When** I focus an icon, **Then** its action and applicable selected or disabled state are announced, and Enter or Space activates an enabled control.
+4. **Given** I use touch without hover, **When** I press and hold a toolbar icon, **Then** its action name appears temporarily without activating the control or adding permanent button text.
 5. **Given** the normal drawing view, **When** I inspect the screen, **Then** no landing page, in-app chat panel, Discuss button, or persistent AI-sharing sentence occupies the workspace.
 
 ### Edge Cases
@@ -114,7 +114,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - **FR-004**: With the pen selected, two-finger touch drag MUST pan and pinch MUST zoom; with the hand selected, pinch MUST still zoom. Desktop wheel input MUST zoom around the pointer, and Space plus drag MUST temporarily pan.
 - **FR-005**: Pan, zoom, cancelled gestures, and transitions between drawing and navigation MUST NOT commit unintended strokes or change drawing history.
 - **FR-006**: Each committed stroke MUST be one Undo step. The canvas session MUST retain the 50 most recent committed drawing actions for Undo and Redo; older committed strokes remain visible when they fall out of history. Undo and Redo MUST preserve the current view position and zoom.
-- **FR-007**: Desktop and mobile MUST show the same bottom-centered, icon-only pen, hand, Undo, and Redo toolbar. Controls MUST have accessible names and selected-state information, with action labels available on hover and focus and an equivalent way to discover names on touch.
+- **FR-007**: Desktop and mobile MUST show the same bottom-centered, icon-only pen, hand, Undo, and Redo toolbar. Controls MUST have accessible names, applicable selected and disabled states, and Enter/Space activation when enabled. Action labels MUST appear on hover and focus, and a touch press-and-hold MUST reveal a temporary label without activating the control.
 - **FR-008**: The interface MUST retain the current cream, green, and serif visual direction while prioritizing canvas space. The normal drawing view MUST NOT show a persistent discussion panel, Discuss button, or AI-sharing sentence.
 - **FR-009**: Opening an available canvas session MUST make that session readable by the configured ChatGPT integration without a manual Connect action. Read access MUST be scoped to that session and end when it ends or expires.
 - **FR-010**: ChatGPT MUST receive an image only when it requests a read during the external conversation. The app MUST NOT automatically send images or trigger AI replies after an idle timer, and MUST NOT add an in-app chat or voice interface.
@@ -141,8 +141,8 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - **SC-002**: In the same walkthrough, at least four people draw, pan, zoom, undo, and redo without assistance after seeing the toolbar, and return to an earlier mark after panning away.
 - **SC-003**: Across all scripted touch gesture transitions and cancellations, zero unintended strokes are committed and existing strokes remain unchanged.
 - **SC-004**: In all scripted AI reads, the image includes every committed stroke from the intended canvas, excludes other canvas sessions, and reflects one consistent revision; empty or ambiguous reads fail clearly.
-- **SC-005**: On supported desktop and iPhone test devices with a representative 500-stroke drawing, at least 95% of drawing, panning, and zooming interactions show visible feedback within 100 milliseconds.
-- **SC-006**: In at least eight of ten representative sketch discussions, the AI addresses visible content and acknowledges ambiguous marks without claiming the sketch proves an implementation exists.
+- **SC-005**: On supported desktop and iPhone test devices with a 500-stroke drawing of 50–100 points per stroke spread across five starting views, at least 95% of drawing, panning, and zooming interactions show visible feedback within 100 milliseconds.
+- **SC-006**: In at least eight of ten prepared sketch discussions, the AI correctly refers to two preidentified visible elements, acknowledges one intentionally ambiguous mark as uncertain, and makes no claim that the sketch proves an implementation exists.
 - **SC-007**: In all scripted connection interruptions, users continue drawing and recover access without losing the open session's strokes.
 
 ## Assumptions
