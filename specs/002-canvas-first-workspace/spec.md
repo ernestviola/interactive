@@ -14,6 +14,7 @@
 
 - Q: If you reload the canvas page, should your drawing return in the same tab? → A: Yes. Restore it during the same tab session, then clear it when that session ends.
 - Q: After you duplicate a canvas tab, should a stroke drawn in either tab appear in the other right away? → A: Yes. Both tabs stay in sync as one drawing.
+- Q: How many committed drawing actions should Undo retain? → A: The 50 most recent actions in the canvas session.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -33,6 +34,7 @@ As a designer or architect, I open interactive and begin sketching without a lan
 4. **Given** existing strokes, **When** I pan or zoom, **Then** only the view changes; the strokes and drawing history remain unchanged.
 5. **Given** an open drawing, **When** I reload its page in the same tab, **Then** its committed strokes and drawing history return so I can continue; ending the tab session clears the drawing.
 6. **Given** I duplicate an open canvas tab, **When** I draw or use Undo or Redo in either tab, **Then** both tabs show the same current drawing and history without a manual sync action.
+7. **Given** the original tab has newer committed actions than a duplicated tab's initial copy, **When** the duplicate opens, **Then** it joins the latest shared drawing before accepting new actions or serving an AI read.
 
 ---
 
@@ -52,6 +54,7 @@ As a canvas user, I move and zoom around a large drawing with familiar desktop a
 4. **Given** the hand tool is active on touch, **When** I drag with one finger, **Then** I pan without drawing; a pinch still zooms.
 5. **Given** a second finger joins a drawing gesture, **When** the gesture becomes a pan or pinch, **Then** no stray or partial stroke is committed.
 6. **Given** committed strokes, **When** I use Undo or Redo, **Then** drawing history changes while the current view position and zoom remain in place.
+7. **Given** more than 50 committed strokes, **When** I use Undo repeatedly, **Then** I can undo the 50 most recent strokes, and older committed strokes remain visible.
 
 ---
 
@@ -98,6 +101,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - If the drawing is empty or only an unfinished stroke exists, do not return an earlier snapshot as current.
 - Duplicated tabs of one drawing are one AI-read target; if distinct drawings are open and the target is ambiguous, fail the read clearly rather than guessing which drawing to expose.
 - If the connection drops or the last tab in a canvas session closes during a read, do not reuse a revoked permission or stale image.
+- If a new stroke cannot be retained in the session's recovery storage, do not acknowledge it as committed; keep the earlier drawing and explain that the new stroke was not saved.
 - Undo, closing the tab, and ending a session cannot retract an image already delivered to ChatGPT.
 
 ## Requirements *(mandatory)*
@@ -109,16 +113,16 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - **FR-003**: The pen MUST use mouse drag on desktop and one-finger drag on touch to draw. The hand MUST use mouse or one-finger drag to pan without drawing.
 - **FR-004**: With the pen selected, two-finger touch drag MUST pan and pinch MUST zoom; with the hand selected, pinch MUST still zoom. Desktop wheel input MUST zoom around the pointer, and Space plus drag MUST temporarily pan.
 - **FR-005**: Pan, zoom, cancelled gestures, and transitions between drawing and navigation MUST NOT commit unintended strokes or change drawing history.
-- **FR-006**: Undo and Redo MUST affect committed strokes while preserving the current view position and zoom.
+- **FR-006**: Each committed stroke MUST be one Undo step. The canvas session MUST retain the 50 most recent committed drawing actions for Undo and Redo; older committed strokes remain visible when they fall out of history. Undo and Redo MUST preserve the current view position and zoom.
 - **FR-007**: Desktop and mobile MUST show the same bottom-centered, icon-only pen, hand, Undo, and Redo toolbar. Controls MUST have accessible names and selected-state information, with action labels available on hover and focus and an equivalent way to discover names on touch.
 - **FR-008**: The interface MUST retain the current cream, green, and serif visual direction while prioritizing canvas space. The normal drawing view MUST NOT show a persistent discussion panel, Discuss button, or AI-sharing sentence.
 - **FR-009**: Opening an available canvas session MUST make that session readable by the configured ChatGPT integration without a manual Connect action. Read access MUST be scoped to that session and end when it ends or expires.
 - **FR-010**: ChatGPT MUST receive an image only when it requests a read during the external conversation. The app MUST NOT automatically send images or trigger AI replies after an idle timer, and MUST NOT add an in-app chat or voice interface.
-- **FR-011**: Each successful read MUST wait for an active stroke to finish and capture one immutable image of all committed strokes, framed by their outer bounds with padding and preserving their relative layout.
+- **FR-011**: Each successful read MUST wait for an active stroke to finish and capture one immutable image of all committed strokes, framed by their outer bounds with padding and preserving their relative layout. If fitting the drawing would make the standard pen line thinner than 1.5 output pixels, the read MUST fail as unreadable rather than return a misleading image.
 - **FR-012**: Each read MUST include capture time and a snapshot identity; later edits and reads MUST NOT alter earlier snapshots.
-- **FR-013**: Empty drawing, ambiguous canvas targeting, unavailable connection, and failed capture MUST produce distinct, actionable results without substituting stale or partial images.
+- **FR-013**: Empty drawing, ambiguous canvas targeting, unavailable connection, unreadable whole-drawing image, and capture timeout MUST produce distinct, actionable results without substituting stale or partial images.
 - **FR-014**: Drawing, navigation, and history MUST remain usable during AI reads and connection outages. AI reads and failures MUST NOT edit the canvas.
-- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading a tab in that session MUST restore its committed strokes and drawing history; ending the last tab in that session MUST clear them. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
+- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading a tab in that session MUST restore its committed strokes and drawing history; ending the last tab in that session MUST clear them. A new stroke MUST NOT be acknowledged as committed unless its recovery copy can be retained; failure MUST preserve earlier work and state that the new stroke was not saved. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
 - **FR-016**: Duplicating an open canvas tab MUST show the same drawing in both tabs. Committed strokes, Undo, and Redo in either tab MUST update the other tab without manual synchronization. Closing one tab MUST NOT end the shared canvas session while another tab remains open.
 
 ### Key Entities *(include if feature involves data)*
