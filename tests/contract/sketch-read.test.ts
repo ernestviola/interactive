@@ -10,7 +10,7 @@ async function setup(deadlineMs = 10_000) {
   const token = sessions.pair(session.id, session.ownerCapability);
   const captures = new Captures(sessions, { deadlineMs });
   const image = await createFixture({ symbol: 'square', code: '2468' }).capture(new AbortController().signal);
-  const snapshot: Snapshot = { snapshotId: randomUUID(), capturedAt: new Date().toISOString(), drawingRevision: 1, selectionRevision: 1, data: image.toString('base64'), width: 640, height: 360 };
+  const snapshot: Snapshot = { snapshotId: randomUUID(), capturedAt: new Date().toISOString(), drawingRevision: 1, data: image.toString('base64'), width: 640, height: 360 };
   const start = (signal?: AbortSignal) => captures.read(token, signal).then(value => ({ value, error: null }), error => ({ value: null, error }));
   return { sessions, session, token, captures, snapshot, start };
 }
@@ -41,7 +41,7 @@ it('rejects a concurrent read as BUSY and rejects late/duplicate responses rathe
   expect(captures.busy(session.id)).toBe(false);
 });
 
-it.each(['NO_SELECTION', 'EMPTY_SELECTION', 'CAPTURE_FAILED', 'PAYLOAD_TOO_LARGE'] as const)('relays %s without any alternative snapshot', async code => {
+it.each(['NO_DRAWING', 'CAPTURE_UNREADABLE', 'CAPTURE_FAILED', 'PAYLOAD_TOO_LARGE'] as const)('relays %s without any alternative snapshot', async code => {
   const { start, captures, session } = await setup();
   const pending = start(); const req = captures.claim(session.id, session.ownerCapability);
   expect(req !== null).toBe(true); if (!req) return;

@@ -12,9 +12,9 @@ try {
       const candidate = await response.json() as { Authorization?: unknown };
       if (typeof candidate.Authorization === 'string' && /^Bearer [\w-]{43}$/.test(candidate.Authorization)) headers = { Authorization: candidate.Authorization };
     }
-  } catch { /* Standalone experiment uses the original bootstrap capability. */ }
+  } catch { /* The standalone experiment uses the bootstrap capability directly. */ }
   process.stdout.write(JSON.stringify(headers));
 } catch {
-  console.error('Start the voice experiment before connecting its MCP server.');
+  console.error('Local MCP helper configuration is unavailable. Start interactive once or check the private configuration.');
   process.exitCode = 1;
 }

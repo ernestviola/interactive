@@ -7,10 +7,11 @@ import type { Sessions } from './sessions';
 export type Delivery = { snapshot: Snapshot; assertCurrent(): void; markSent(): void; discard(): void };
 type Pending = CaptureRequest & { sessionId: string; claimed: boolean; fulfilled: boolean; resolve: ((snapshot: Snapshot) => void) | null; reject: ((error: SketchError) => void) | null; timer: ReturnType<typeof setTimeout>; cleanup: () => void };
 const messages: Record<ErrorCode, string> = {
-  NO_SELECTION: 'Select a rectangle in the canvas.', EMPTY_SELECTION: 'Select a region containing ink.',
-  SESSION_UNAVAILABLE: 'Bring the canvas forward and explicitly pair again.', BUSY: 'Wait for the current read, then retry.',
+  NO_DRAWING: 'Draw something in the canvas and retry.', AMBIGUOUS_CANVAS: 'Close other drawings and retry.',
+  CAPTURE_UNREADABLE: 'Move related marks closer together and retry.',
+  SESSION_UNAVAILABLE: 'Open the canvas and retry.', BUSY: 'Wait for the current read, then retry.',
   CAPTURE_TIMEOUT: 'Bring the canvas forward, finish your gesture, and retry.', CAPTURE_FAILED: 'Finish your gesture and retry the capture.',
-  PAYLOAD_TOO_LARGE: 'Select a smaller region and retry.',
+  PAYLOAD_TOO_LARGE: 'Simplify the drawing and retry.',
 };
 export const captureError = (code: ErrorCode, status = 400) => new SketchError(code, messages[code], status);
 export class Captures {
@@ -40,7 +41,7 @@ export class Captures {
       this.pending.set(session.id, request); signal?.addEventListener('abort', cancelled, { once: true });
     });
     const snapshot = await result;
-    const metadata = { snapshotId: snapshot.snapshotId, capturedAt: snapshot.capturedAt, drawingRevision: snapshot.drawingRevision, selectionRevision: snapshot.selectionRevision };
+    const metadata = { snapshotId: snapshot.snapshotId, capturedAt: snapshot.capturedAt, drawingRevision: snapshot.drawingRevision };
     const assertCurrent = () => {
       this.sessions.assertCurrent(session, epoch);
       if (this.pending.get(session.id) !== request || this.sessions.now() >= deadline) throw captureError('CAPTURE_TIMEOUT');
@@ -71,7 +72,7 @@ export class Captures {
       throw captureError('SESSION_UNAVAILABLE', 409);
     }
     if (post.error) {
-      if (!['NO_SELECTION', 'EMPTY_SELECTION', 'CAPTURE_FAILED', 'PAYLOAD_TOO_LARGE'].includes(post.error)) throw captureError('CAPTURE_FAILED');
+      if (!['NO_DRAWING', 'CAPTURE_UNREADABLE', 'CAPTURE_TIMEOUT', 'CAPTURE_FAILED', 'PAYLOAD_TOO_LARGE'].includes(post.error)) throw captureError('CAPTURE_FAILED');
       this.fail(id, captureError(post.error)); return;
     }
     const snapshot = post.snapshot;
@@ -83,10 +84,9 @@ export class Captures {
 
 function validSnapshot(snapshot: Snapshot): boolean {
   try {
-    if (Object.keys(snapshot).sort().join(',') !== 'capturedAt,data,drawingRevision,height,selectionRevision,snapshotId,width' ||
+    if (Object.keys(snapshot).sort().join(',') !== 'capturedAt,data,drawingRevision,height,snapshotId,width' ||
       !z.uuid().safeParse(snapshot.snapshotId).success || !z.iso.datetime({ offset: true }).safeParse(snapshot.capturedAt).success ||
       !Number.isSafeInteger(snapshot.drawingRevision) || snapshot.drawingRevision < 0 ||
-      !Number.isSafeInteger(snapshot.selectionRevision) || snapshot.selectionRevision < 0 ||
       !Number.isInteger(snapshot.width) || !Number.isInteger(snapshot.height) || snapshot.width < 1 || snapshot.height < 1 ||
       snapshot.width > 1024 || snapshot.height > 768 || snapshot.data.length > 5_592_408) return false;
     const bytes = Buffer.from(snapshot.data, 'base64');
