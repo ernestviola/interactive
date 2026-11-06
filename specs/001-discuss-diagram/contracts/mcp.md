@@ -8,7 +8,9 @@ compatible package/protocol combination during implementation and record it in p
 Stateless HTTP transport is sufficient; sketch pairing is application state in the broker.
 
 Authorize each tool call with `Authorization: Bearer <read capability>` supplied by desktop
-configuration through an environment variable. Never accept secrets or arbitrary session IDs
+configuration through its local authentication helper (or an independently provisioned
+environment variable for another client). The no-export local handoff is described in
+local-session.md. Never accept secrets or arbitrary session IDs
 as model arguments. Reject absent/expired/incorrect tokens with HTTP 401; no image and no
 session existence disclosure. Allowlist Host and Origin where applicable for local transport.
 Do not wildcard CORS, expose debug handlers, or assume a session ID proves authorization.

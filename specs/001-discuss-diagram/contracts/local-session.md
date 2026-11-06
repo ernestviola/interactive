@@ -63,6 +63,29 @@ Browser close/reload sends best-effort end; the lease bounds cleanup if that fai
 background suspension or local server restart, retain any still-open tab's strokes but create
 a new session and require explicit pairing. Never automatically retarget an existing AI token.
 
+### Local operator handoff — no repeated exports
+
+The user's subsequent no-export request refines the out-of-band pairing mechanism for the
+single local operator. The existing desktop header helper uses a separate, owner-only
+bootstrap credential from ignored local operator configuration. It calls the broker's
+loopback-only `GET /client-authorization` endpoint with that credential. This endpoint is
+not proxied to the browser or exposed as an MCP tool; owner/read capabilities cannot use it.
+It returns only an Authorization header, with no-store and no logging.
+
+An explicit browser-owner `POST /sessions/{id}/pair` creates the normal random per-session
+read capability and places it in one volatile local-client transfer slot bound to that
+session/generation/epoch. The registry still stores capability hashes. The transfer slot
+temporarily holds the raw key for the host helper; it contains no strokes or images and
+is never persisted. End, expiry, rotation, and broker restart clear/invalidate it. Explicitly
+connecting another canvas revokes the earlier local-client read pairing, preserving its
+local ink. An old token never starts referring to another session; the host receives a
+new token only after explicit owner pairing and its supported credential refresh.
+
+This lets iPhone drawing pair with desktop voice without copying keys between devices or
+exporting shell variables. The long-lived bootstrap cannot read `/mcp`, manage browser
+sessions, or select a canvas; it can obtain only the already explicitly paired local-client
+read key. Before pairing, it receives no session information or image.
+
 ## UI contract
 
 - Show the session-only data warning before first editing.
