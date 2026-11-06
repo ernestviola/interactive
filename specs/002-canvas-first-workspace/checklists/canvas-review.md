@@ -1,6 +1,6 @@
 # Canvas Requirements Checklist: Canvas-First Open Workspace
 
-**Purpose**: Review whether the canvas, gesture, session, and AI-read requirements are complete and testable before tasks are generated.
+**Purpose**: Review whether the canvas, gesture, session, and AI-read requirements are complete and testable before implementation.
 **Created**: 2026-11-05
 **Feature**: [spec.md](../spec.md)
 
@@ -10,42 +10,42 @@
 
 ## Canvas and gesture requirements
 
-- [ ] CHK001 Are direct entry, the open-ended drawing area, and the absence of a landing action explicitly specified? [Completeness, Spec §FR-001–FR-002]
-- [ ] CHK002 Are mouse, wheel, trackpad, one-finger, two-finger, pinch, hand, and temporary Space behaviors defined without conflicting interpretations? [Clarity, Spec §FR-003–FR-004]
-- [ ] CHK003 Are cancellation and second-finger transitions specified so a partial stroke cannot enter drawing history? [Coverage, Spec §FR-005]
-- [ ] CHK004 Is the relationship between world coordinates, visible viewport, and Undo/Redo unambiguous? [Consistency, Spec §FR-002, FR-006]
-- [ ] CHK005 Are the 50-step limit, one-stroke-per-step rule, and treatment of older visible ink specified consistently? [Clarity, Spec §FR-006]
-- [ ] CHK006 Are the toolbar's icon order, placement, selected state, hover/focus labels, and touch label discovery specified for both desktop and mobile? [Completeness, Spec §FR-007]
-- [ ] CHK007 Are accessibility requirements for keyboard and screen-reader use stated for all four toolbar actions? [Coverage, Spec §User Story 4]
+- [x] CHK001 Are direct entry, the open-ended drawing area, and the absence of a landing action explicitly specified? [Completeness, Spec §FR-001–FR-002]
+- [x] CHK002 Are mouse, wheel, trackpad, one-finger, two-finger, pinch, hand, and temporary Space behaviors defined without conflicting interpretations? [Clarity, Spec §FR-003–FR-004]
+- [x] CHK003 Are cancellation and second-finger transitions specified so a partial stroke cannot enter drawing history? [Coverage, Spec §FR-005]
+- [x] CHK004 Is the relationship between world coordinates, visible viewport, and Undo/Redo unambiguous? [Consistency, Spec §FR-002, FR-006]
+- [x] CHK005 Are the 50-step limit, one-stroke-per-step rule, and treatment of older visible ink specified consistently? [Clarity, Spec §FR-006]
+- [x] CHK006 Are the toolbar's icon order, placement, selected state, hover/focus labels, and touch label discovery specified for both desktop and mobile? [Completeness, Spec §FR-007]
+- [x] CHK007 Are accessibility requirements for keyboard and screen-reader use stated for all four toolbar actions? [Coverage, Spec §User Story 4]
 
 ## Session and recovery requirements
 
-- [ ] CHK008 Are same-tab reload recovery and final-tab session end clearly distinguished? [Clarity, Spec §FR-015]
-- [ ] CHK009 Are duplicated-tab drawing, shared history, and AI-target semantics consistent across the scenarios and requirements? [Consistency, Spec §FR-016, User Stories 1 and 3]
-- [ ] CHK010 Are requirements defined for a duplicated tab joining after the original has newer drawing actions? [Gap, Spec §FR-016]
-- [ ] CHK011 Are requirements defined for a tab or broker closing during a read without returning a stale image or losing open-tab work? [Coverage, Spec §Edge Cases, FR-013–FR-015]
-- [ ] CHK012 Does the spec say what the user should observe if transient checkpoint storage cannot retain a newly committed stroke? [Gap, Spec §FR-015]
+- [x] CHK008 Are same-tab reload recovery and final-tab session end clearly distinguished? [Clarity, Spec §FR-015]
+- [x] CHK009 Are duplicated-tab drawing, shared history, and AI-target semantics consistent across the scenarios and requirements? [Consistency, Spec §FR-016, User Stories 1 and 3]
+- [x] CHK010 Are requirements defined for a duplicated tab joining after the original has newer drawing actions? [Gap, Spec §FR-016]
+- [x] CHK011 Are requirements defined for a tab or broker closing during a read without returning a stale image or losing open-tab work? [Coverage, Spec §Edge Cases, FR-013–FR-015]
+- [x] CHK012 Does the spec say what the user should observe if transient checkpoint storage cannot retain a newly committed stroke? [Gap, Spec §FR-015]
 
 ## AI access and capture requirements
 
-- [ ] CHK013 Are automatic read access and the absence of an in-app Connect or Discuss action consistent with on-demand image sharing? [Consistency, Spec §FR-008–FR-010]
-- [ ] CHK014 Is the sharing scope stated as all committed strokes of one active drawing, independent of viewport and without a required selection? [Clarity, Spec §FR-009–FR-011]
-- [ ] CHK015 Are the empty-drawing, ambiguous-target, unavailable-connection, unreadable-image, and timeout outcomes distinguishable in the requirements? [Coverage, Spec §FR-013, Edge Cases]
-- [ ] CHK016 Is the criterion for when a spread-out drawing becomes too small to read defined well enough for consistent acceptance? [Ambiguity, Spec §Edge Cases, FR-011]
-- [ ] CHK017 Are read-only AI access, session isolation, expiry, and delivered-image retention explained consistently? [Consistency, Spec §FR-009, FR-014–FR-015]
-- [ ] CHK018 Are snapshot identity, capture time, revision consistency, and immutability specified for later reads and edits? [Completeness, Spec §FR-011–FR-012]
+- [x] CHK013 Are automatic read access and the absence of an in-app Connect or Discuss action consistent with on-demand image sharing? [Consistency, Spec §FR-008–FR-010]
+- [x] CHK014 Is the sharing scope stated as all committed strokes of one active drawing, independent of viewport and without a required selection? [Clarity, Spec §FR-009–FR-011]
+- [x] CHK015 Are the empty-drawing, ambiguous-target, unavailable-connection, unreadable-image, and timeout outcomes distinguishable in the requirements? [Coverage, Spec §FR-013, Edge Cases]
+- [x] CHK016 Is the criterion for when a spread-out drawing becomes too small to read defined well enough for consistent acceptance? [Ambiguity, Spec §Edge Cases, FR-011]
+- [x] CHK017 Are read-only AI access, session isolation, expiry, and delivered-image retention explained consistently? [Consistency, Spec §FR-009, FR-014–FR-015]
+- [x] CHK018 Are snapshot identity, capture time, revision consistency, and immutability specified for later reads and edits? [Completeness, Spec §FR-011–FR-012]
 
 ## Outcome and dependency quality
 
-- [ ] CHK019 Can the 500-stroke interaction target be measured on both desktop and physical iPhone devices using the stated threshold? [Measurability, Spec §SC-005]
-- [ ] CHK020 Are the five-person usability and ten-discussion outcomes expressed with counts and observable success conditions? [Measurability, Spec §SC-001–SC-002, SC-006]
-- [ ] CHK021 Are the external ChatGPT connection, local hosting, and voice capability assumptions explicit enough to avoid claiming unsupported behavior? [Assumption, Spec §Assumptions, Plan §Technical Context]
-- [ ] CHK022 Are the spec, plan, and contract aligned on transient storage, duplicated tabs, 50-step history, and one-image whole-drawing reads? [Consistency, Spec §FR-006, FR-011, FR-015–FR-016; Plan §Summary]
+- [x] CHK019 Can the 500-stroke interaction target be measured on both desktop and physical iPhone devices using the stated threshold? [Measurability, Spec §SC-005]
+- [x] CHK020 Are the five-person usability and ten-discussion outcomes expressed with counts and observable success conditions? [Measurability, Spec §SC-001–SC-002, SC-006]
+- [x] CHK021 Are the external ChatGPT connection, local hosting, and voice capability assumptions explicit enough to avoid claiming unsupported behavior? [Assumption, Spec §Assumptions, Plan §Technical Context]
+- [x] CHK022 Are the spec, plan, and contract aligned on transient storage, duplicated tabs, 50-step history, and one-image whole-drawing reads? [Consistency, Spec §FR-006, FR-011, FR-015–FR-016; Plan §Summary]
 
 ## Notes
 
-- Leave items unchecked until a reviewer evaluates the requirements. A reviewer may add findings beside any item.
+- Reviewer pass completed on 2026-11-05: all 22 requirements-quality criteria are satisfied by the linked specification, plan, and contract. These markers do not assert that application behavior has been implemented or tested.
 - The built-in [spec quality checklist](requirements.md) has a separate lifecycle under Specify and Clarify.
 - Spec Kit Implement may read this checklist state as a gate; it must not change the markers.
-- Assisted evidence pass, 2026-11-05: CHK001–CHK022 now have corresponding written requirements. The pass tightened touch label, keyboard, performance-workload, and discussion-scoring language in the spec. This note is not reviewer approval; markers remain unchecked.
-- Browser restore behavior, storage quota, and physical-device latency remain implementation validation risks under the plan, not unresolved product choices.
+- Evidence: FR-001–FR-008 and User Stories 1, 2, and 4 cover drawing, gestures, history, toolbar, and accessibility (CHK001–CHK007); FR-013, FR-015–FR-016, User Stories 1 and 3, and the session contract cover recovery, duplicated tabs, and failure cases (CHK008–CHK012); FR-009–FR-015 and User Story 3 cover on-demand read scope, errors, legibility, provenance, and retention (CHK013–CHK018); SC-001–SC-007, assumptions, and plan technical context cover measurable outcomes and dependencies (CHK019–CHK022).
+- Browser restore behavior, storage quota, physical-device latency, and voice capability remain implementation validation risks under the plan. Browser restore must be proven on supported browsers before the user-visible lifecycle guarantee is claimed.

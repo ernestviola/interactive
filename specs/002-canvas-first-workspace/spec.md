@@ -15,6 +15,7 @@
 - Q: If you reload the canvas page, should your drawing return in the same tab? → A: Yes. Restore it during the same tab session, then clear it when that session ends.
 - Q: After you duplicate a canvas tab, should a stroke drawn in either tab appear in the other right away? → A: Yes. Both tabs stay in sync as one drawing.
 - Q: How many committed drawing actions should Undo retain? → A: The 50 most recent actions in the canvas session.
+- Q: What happens if the browser restores a tab after the final canvas tab was closed? → A: Open a blank new canvas; only reloading an open tab restores its drawing.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -35,6 +36,7 @@ As a designer or architect, I open interactive and begin sketching without a lan
 5. **Given** an open drawing, **When** I reload its page in the same tab, **Then** its committed strokes and drawing history return so I can continue; ending the tab session clears the drawing.
 6. **Given** I duplicate an open canvas tab, **When** I draw or use Undo or Redo in either tab, **Then** both tabs show the same current drawing and history without a manual sync action.
 7. **Given** the original tab has newer committed actions than a duplicated tab's initial copy, **When** the duplicate opens, **Then** it joins the latest shared drawing before accepting new actions or serving an AI read.
+8. **Given** I closed the last canvas tab, **When** I use the browser's Restore Closed Tab action, **Then** a blank new canvas opens and the ended drawing and its read access do not return.
 
 ---
 
@@ -101,6 +103,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - If the drawing is empty or only an unfinished stroke exists, do not return an earlier snapshot as current.
 - Duplicated tabs of one drawing are one AI-read target; if distinct drawings are open and the target is ambiguous, fail the read clearly rather than guessing which drawing to expose.
 - If the connection drops or the last tab in a canvas session closes during a read, do not reuse a revoked permission or stale image.
+- Browser restoration of a closed final tab must not be mistaken for a reload of an open tab; a restored checkpoint alone is insufficient to resume the ended drawing.
 - If a new stroke cannot be retained in the session's recovery storage, do not acknowledge it as committed; keep the earlier drawing and explain that the new stroke was not saved.
 - Undo, closing the tab, and ending a session cannot retract an image already delivered to ChatGPT.
 
@@ -122,7 +125,7 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - **FR-012**: Each read MUST include capture time and a snapshot identity; later edits and reads MUST NOT alter earlier snapshots.
 - **FR-013**: Empty drawing, ambiguous canvas targeting, unavailable connection, unreadable whole-drawing image, and capture timeout MUST produce distinct, actionable results without substituting stale or partial images.
 - **FR-014**: Drawing, navigation, and history MUST remain usable during AI reads and connection outages. AI reads and failures MUST NOT edit the canvas.
-- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading a tab in that session MUST restore its committed strokes and drawing history; ending the last tab in that session MUST clear them. A new stroke MUST NOT be acknowledged as committed unless its recovery copy can be retained; failure MUST preserve earlier work and state that the new stroke was not saved. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
+- **FR-015**: Drawing data and application-managed image copies MUST remain transient for the canvas session. Reloading an open tab MUST restore its committed strokes and drawing history. Closing the last tab MUST end that drawing session; using Restore Closed Tab afterward MUST open a blank new drawing and MUST NOT restore the ended drawing or its AI read access. A stored checkpoint alone MUST NOT authorize recovery of an ended session. A new stroke MUST NOT be acknowledged as committed unless its recovery copy can be retained; failure MUST preserve earlier work and state that the new stroke was not saved. A discoverable explanation MUST state that ChatGPT can read the current drawing and that delivered images follow ChatGPT's retention rules, without adding persistent copy to the normal canvas view.
 - **FR-016**: Duplicating an open canvas tab MUST show the same drawing in both tabs. Committed strokes, Undo, and Redo in either tab MUST update the other tab without manual synchronization. Closing one tab MUST NOT end the shared canvas session while another tab remains open.
 
 ### Key Entities *(include if feature involves data)*
@@ -151,4 +154,4 @@ As a desktop or touch user, I find essential drawing actions in the same place w
 - The first capture strategy is one image framed by stroke bounds with padding. Edge detection, automatic segmentation, image tiling, and automatic image sending are deferred until real use shows a need.
 - A concise explanation of sharing and relevant connection errors can be available without persistent canvas controls or messages.
 - The [Figma redesign concept](https://www.figma.com/design/aIalohp0XclbOEWbNv3QYh?node-id=4-2) is the visual reference for this draft; the acceptance criteria above govern implementation.
-- The approved Interactive Constitution v3.0.0 permits whole-drawing reads and automatic session-scoped access while retaining read-only AI behavior and transient drawing data.
+- The approved Interactive Constitution v4.0.0 permits whole-drawing reads, automatic session-scoped access, and local-only feature work while retaining read-only AI behavior and transient drawing data. GCP deployment is future scope.

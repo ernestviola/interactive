@@ -6,7 +6,8 @@ This contract describes observable behavior for the existing local Next.js proxy
 
 - Opening the canvas creates or resumes one transient drawing session and makes it readable by the configured local helper. There is no Connect or region-selection operation.
 - A duplicated tab joins the same `sessionId` with its own ephemeral tab presence. The current drawing and 50-step history synchronize without manual action. Each tab may navigate its viewport independently.
-- A reload retains the tab's session checkpoint and rejoins the session. If the broker restarted, the browser may obtain a fresh generation for the same local drawing; old grants are invalid.
+- A confirmed reload of an open tab retains its session checkpoint and rejoins the drawing. If the broker restarted, the browser may obtain a fresh generation for that continuous local drawing; old grants are invalid.
+- Browser Restore Closed Tab after the final tab closed starts a blank new drawing, even if the browser retained old tab storage. A checkpoint without evidence of a continuous reload or live sibling is discarded and cannot restore the ended drawing or its read grant.
 - Each live tab renews presence. Closing a tab may send a best-effort detach. The broker revokes immediately after the last confirmed detach or on lease expiry; correctness must not depend on a close event.
 - If storage cannot safely checkpoint an action, the action is not acknowledged as committed and the earlier drawing remains intact.
 

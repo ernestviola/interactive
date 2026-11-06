@@ -20,7 +20,7 @@
 **Purpose**: Add shared deterministic fixtures without changing product behavior. Both tasks follow Phase 1 and may run in parallel.
 
 - [ ] T003 [P] Add a 500-stroke, 50–100-point-per-stroke fixture spread across five starting views, plus empty and far-apart drawings, in `tests/fixtures/workloads.ts`.
-- [ ] T004 [P] Extend `tests/browser/fixture.ts` and `tests/browser/helpers.ts` with isolated broker startup, duplicate-tab, reload, and controlled connection-outage helpers; keep screenshot, trace, video, image-byte, and credential persistence disabled.
+- [ ] T004 [P] Extend `tests/browser/fixture.ts` and `tests/browser/helpers.ts` with isolated broker startup, duplicate-tab, reload, Restore Closed Tab, and controlled connection-outage helpers; keep screenshot, trace, video, image-byte, and credential persistence disabled.
 
 **Checkpoint**: Shared fixtures are ready; no application behavior has changed.
 
@@ -30,20 +30,20 @@
 
 **Goal**: Open directly to an unbounded drawing, keep 50 Undo steps, restore after reload, and synchronize duplicated tabs.
 
-**Independent Test**: Open a fresh canvas, draw outside the starting view, Undo 50 of 51 strokes, reload, duplicate the tab, and confirm both tabs show the same latest drawing and history without a broker-dependent drawing path.
+**Independent Test**: Open a fresh canvas, draw outside the starting view, Undo 50 of 51 strokes, reload, duplicate the tab, and confirm both tabs show the same latest drawing and history without a broker-dependent drawing path. Close the final tab, restore it through the browser, and confirm it opens blank.
 
 ### Tests first
 
 - [ ] T005 [US1] Add and run failing world-coordinate, one-stroke-per-action, 50-step eviction, and Redo-clear tests in `tests/unit/drawing-state.test.ts` and `tests/unit/drawing-history.test.ts`; ensure evicted history leaves older ink visible.
-- [ ] T006 [US1] Add and run failing checkpoint, duplicate-tab action ordering, join-latest, coordinator failover, and storage-quota tests in `tests/unit/session-document.test.ts`; a rejected checkpoint must preserve earlier work and identify the unsaved stroke.
-- [ ] T007 [US1] Add and run failing direct-open, offscreen drawing, same-tab reload, duplicate-tab sync, and broker-outage browser journeys in `tests/browser/canvas-session.spec.ts`.
+- [ ] T006 [US1] Add and run failing checkpoint, confirmed-reload versus restored-closed-tab continuity, duplicate-tab action ordering, join-latest, coordinator failover, and storage-quota tests in `tests/unit/session-document.test.ts`; a rejected checkpoint must preserve earlier work and identify the unsaved stroke.
+- [ ] T007 [US1] Add and run failing direct-open, offscreen drawing, same-tab reload, final-tab Restore Closed Tab blank-state, duplicate-tab sync, and broker-outage browser journeys in `tests/browser/canvas-session.spec.ts`.
 
 ### Implementation
 
 - [ ] T008 [US1] Replace fixed page limits and selection-only stroke types with finite world-coordinate Stroke and Drawing Document types in `src/lib/contracts/sketch.ts` and `src/lib/drawing/state.ts`; preserve the existing per-stroke safety limit without clipping world positions.
 - [ ] T009 [US1] Implement 50-step shared Undo/Redo behavior in `src/lib/drawing/history.ts`; each committed stroke is one step, a new stroke clears Redo, and older visible ink survives history eviction.
 - [ ] T010 [US1] Render world-coordinate strokes in the visible area at device pixel ratio in `src/lib/drawing/render.ts`; keep provisional ink separate from committed strokes.
-- [ ] T011 [US1] Implement validated tab-session checkpoints, `BroadcastChannel` join/state/action messages, Web Locks coordinator election, revision/idempotency checks, and storage-quota rejection in `src/lib/session-document.ts`; tab viewport state stays local.
+- [ ] T011 [US1] Implement validated tab-session checkpoints with recovery only for confirmed open-tab reload or a live sibling, `BroadcastChannel` join/state/action messages, Web Locks coordinator election, revision/idempotency checks, and storage-quota rejection in `src/lib/session-document.ts`; discard a restored final-tab checkpoint and keep tab viewport state local.
 - [ ] T012 [US1] Replace the welcome/start gate with an immediately usable canvas and wire drawing/history to the shared document in `src/components/SketchCanvas.tsx` and `src/app/page.tsx`.
 - [ ] T013 [US1] Re-run the US1 unit and browser tests, record intended red-to-green results in `specs/002-canvas-first-workspace/test-evidence.md`, and correct only regressions found in `src/lib/drawing/` or `src/lib/session-document.ts`.
 
@@ -67,7 +67,7 @@
 
 - [ ] T017 [US2] Add per-tab viewport math for screen/world conversion, cursor-anchored wheel zoom, midpoint-anchored pinch zoom, and pan in `src/lib/drawing/viewport.ts`.
 - [ ] T018 [US2] Add a pointer-ID gesture state machine that cancels provisional ink before touch navigation and ignores navigation in Undo history in `src/lib/drawing/gestures.ts`.
-- [ ] T019 [US2] Wire wheel, keyboard Space, pointer capture/cancel, pen, hand, and two-touch input through `src/components/SketchCanvas.tsx`; keep drawing responsive when the broker is unavailable.
+- [ ] T019 [US2] Wire wheel, keyboard Space, pointer capture/cancel, pen, hand, and two-touch input through `src/components/SketchCanvas.tsx`; add a basic accessible hand selector in `src/components/DrawingToolbar.tsx` so US2 is independently usable before final toolbar styling; keep drawing responsive when the broker is unavailable.
 - [ ] T020 [US2] Apply canvas touch ownership, viewport sizing, and pointer-mode cursor rules in `src/app/globals.css`; keep the toolbar outside the gesture surface.
 - [ ] T021 [US2] Re-run US2 unit/browser tests and record red-to-green results in `specs/002-canvas-first-workspace/test-evidence.md`.
 
@@ -87,16 +87,17 @@
 - [ ] T023 [US3] Add and run failing whole-stroke-bounds, padding, 1.5-output-pixel legibility, empty drawing, immutable revision, and active-gesture deadline tests in `tests/unit/capture-recovery.test.ts`.
 - [ ] T024 [US3] Add and run failing MCP tool-name, image/metadata, typed error, PNG validation, and no-write-path tests in `tests/contract/sketch-read.test.ts`, `tests/contract/snapshot-provenance.test.ts`, and `tests/contract/mcp-protocol.test.ts`.
 - [ ] T025 [US3] Add and run failing on-demand read, no Connect control, outage continuity, stale-key rejection, and duplicated-tab snapshot journeys in `tests/browser/connection-recovery.spec.ts` and `tests/browser/canvas-read.spec.ts`.
+- [ ] T026 [US3] Replace obsolete selected-region and manual-Connect assertions with whole-drawing, automatic-read, and no-stale-image coverage in `tests/browser/crop-privacy.spec.ts`, `tests/browser/sharing-status.spec.ts`, `tests/browser/session-lifecycle.spec.ts`, `tests/browser/touch-workflow.spec.ts`, `tests/contract/privacy.test.ts`, and `tests/contract/voice-fixture.test.ts`; retain meaningful privacy checks and run the changed tests to observe intended new-flow failures before implementation.
 
 ### Implementation
 
-- [ ] T026 [P] [US3] Extend broker Canvas Session records with per-tab presence, generation-bound read grants, final-tab/lease revocation, and distinct-session ambiguity in `src/broker/sessions.ts` and `src/broker/local-client.ts`; keep helper bootstrap separate from browser owner authority.
-- [ ] T027 [P] [US3] Replace selection crop with padded whole-stroke capture and a `CAPTURE_UNREADABLE` failure below 1.5 output pixels in `src/lib/drawing/capture.ts` and `src/lib/drawing/render.ts`; freeze one acknowledged drawing revision before encoding.
-- [ ] T028 [US3] Auto-register/recover the canvas session and use one coordinated capture provider without returning a read capability to the page in `src/lib/session-client.ts` and `src/components/SketchCanvas.tsx`; do not send images on an idle timer.
-- [ ] T029 [US3] Adapt session, heartbeat, capture, and error routes for per-tab presence and automatic grants in `src/broker/server.ts` and `src/app/api/sketch/[...path]/route.ts`; preserve same-origin/loopback checks and body limits.
-- [ ] T030 [US3] Validate current session generation, full-drawing snapshot metadata, PNG size/dimensions, one pending request, and revocation before delivery in `src/broker/captures.ts` and `src/lib/contracts/sketch.ts`; never substitute an earlier image.
-- [ ] T031 [US3] Expose only the read-only `read_current_drawing` MCP tool with fresh metadata and distinct `NO_DRAWING`, `AMBIGUOUS_CANVAS`, `CAPTURE_TIMEOUT`, `CAPTURE_UNREADABLE`, `PAYLOAD_TOO_LARGE`, `BUSY`, and `SESSION_UNAVAILABLE` results in `src/broker/mcp.ts`.
-- [ ] T032 [US3] Re-run US3 unit, contract, and browser tests; record red-to-green results and image/privacy observations in `specs/002-canvas-first-workspace/test-evidence.md`.
+- [ ] T027 [P] [US3] Extend broker Canvas Session records with per-tab presence, generation-bound read grants, final-tab/lease revocation, and distinct-session ambiguity in `src/broker/sessions.ts` and `src/broker/local-client.ts`; keep helper bootstrap separate from browser owner authority.
+- [ ] T028 [P] [US3] Replace selection crop with padded whole-stroke capture and a `CAPTURE_UNREADABLE` failure below 1.5 output pixels in `src/lib/drawing/capture.ts` and `src/lib/drawing/render.ts`; freeze one acknowledged drawing revision before encoding.
+- [ ] T029 [US3] Auto-register/recover the canvas session and use one coordinated capture provider without returning a read capability to the page in `src/lib/session-client.ts` and `src/components/SketchCanvas.tsx`; do not send images on an idle timer.
+- [ ] T030 [US3] Adapt session, heartbeat, capture, and error routes for per-tab presence and automatic grants in `src/broker/server.ts` and `src/app/api/sketch/[...path]/route.ts`; preserve same-origin/loopback checks and body limits.
+- [ ] T031 [US3] Validate current session generation, full-drawing snapshot metadata, PNG size/dimensions, one pending request, and revocation before delivery in `src/broker/captures.ts` and `src/lib/contracts/sketch.ts`; never substitute an earlier image.
+- [ ] T032 [US3] Expose only the read-only `read_current_drawing` MCP tool with fresh metadata and distinct `NO_DRAWING`, `AMBIGUOUS_CANVAS`, `CAPTURE_TIMEOUT`, `CAPTURE_UNREADABLE`, `PAYLOAD_TOO_LARGE`, `BUSY`, and `SESSION_UNAVAILABLE` results in `src/broker/mcp.ts`.
+- [ ] T033 [US3] Re-run US3 unit, contract, and browser tests; record red-to-green results and image/privacy observations in `specs/002-canvas-first-workspace/test-evidence.md`.
 
 **Checkpoint**: The complete draw–navigate–ask workflow works in controlled text/MCP tests. Voice support is claimed only after the final capability gate.
 
@@ -110,14 +111,14 @@
 
 ### Tests first
 
-- [ ] T033 [US4] Add and run failing toolbar order, selected/disabled state, focus/Enter/Space activation, touch-hold label suppression, and no-extra-panel tests in `tests/browser/accessibility.spec.ts` and `tests/browser/canvas-toolbar.spec.ts`.
+- [ ] T034 [US4] Add and run failing toolbar order, selected/disabled state, focus/Enter/Space activation, touch-hold label suppression, and no-extra-panel tests in `tests/browser/accessibility.spec.ts` and `tests/browser/canvas-toolbar.spec.ts`.
 
 ### Implementation
 
-- [ ] T034 [US4] Replace the existing text-heavy controls with icon-only pen, hand, Undo, and Redo buttons; add hover/focus labels and touch press-and-hold labels that do not activate in `src/components/DrawingToolbar.tsx`.
-- [ ] T035 [US4] Remove selection preview, manual connection controls, in-app discussion/status copy, and old branding from the normal canvas layout in `src/components/SketchCanvas.tsx`; provide a discoverable, nonpersistent explanation of whole-drawing AI access and delivered-image retention.
-- [ ] T036 [US4] Implement matching bottom-centered desktop and mobile toolbar layout, cream/green/serif styling, safe-area spacing, and focus visibility in `src/app/globals.css`.
-- [ ] T037 [US4] Re-run the US4 browser/accessibility tests and record red-to-green results in `specs/002-canvas-first-workspace/test-evidence.md`.
+- [ ] T035 [US4] Replace the existing text-heavy controls with icon-only pen, hand, Undo, and Redo buttons; add hover/focus labels and touch press-and-hold labels that do not activate in `src/components/DrawingToolbar.tsx`.
+- [ ] T036 [US4] Remove selection preview, manual connection controls, in-app discussion/status copy, and old branding from the normal canvas layout in `src/components/SketchCanvas.tsx`; add the “interactive” wordmark and a discoverable, nonpersistent explanation of whole-drawing AI access and delivered-image retention.
+- [ ] T037 [US4] Implement matching bottom-centered desktop and mobile toolbar layout, cream/green/serif styling, safe-area spacing, and focus visibility in `src/app/globals.css`.
+- [ ] T038 [US4] Re-run the US4 browser/accessibility tests and record red-to-green results in `specs/002-canvas-first-workspace/test-evidence.md`.
 
 **Checkpoint**: All four story flows use the final simplified interface.
 
@@ -127,12 +128,13 @@
 
 **Purpose**: Prove the integrated user outcome and update operational guidance.
 
-- [ ] T038 Update local startup, automatic read flow, reload/duplicate-tab behavior, 50-step Undo limit, error guidance, and transient-data wording in `README.md`.
-- [ ] T039 Run the 500-stroke interaction measurement and storage-quota/revocation cases from `specs/002-canvas-first-workspace/quickstart.md`; record device, actual counts, latency distribution, and failures in `specs/002-canvas-first-workspace/test-evidence.md`.
-- [ ] T040 Run the physical iPhone Safari gesture, duplicate/reload, and local-LAN read walkthrough from `specs/002-canvas-first-workspace/quickstart.md`; record the actual device arrangement and results in `specs/002-canvas-first-workspace/test-evidence.md`.
-- [ ] T041 Repeat the changed whole-drawing voice capability check using `specs/001-discuss-diagram/feasibility.md`; record whether ChatGPT voice read the current canvas and gave a relevant spoken answer in `specs/002-canvas-first-workspace/test-evidence.md`; if unsupported, stop the spoken-scope claim and return the finding to the user.
-- [ ] T042 Run `pnpm run test:unit`, `pnpm run test:contract`, `pnpm run test:browser`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build`; record exact results and known limits in `specs/002-canvas-first-workspace/test-evidence.md`.
-- [ ] T043 Conduct the five-person drawing walkthrough and ten prepared sketch discussions required by SC-001, SC-002, and SC-006; record observed counts and the two-elements/one-ambiguous-mark scoring in `specs/002-canvas-first-workspace/test-evidence.md` rather than inferring a pass.
+- [ ] T039 Update local startup, automatic read flow, reload/duplicate-tab behavior, blank Restore Closed Tab behavior, 50-step Undo limit, error guidance, and transient-data wording in `README.md`.
+- [ ] T040 Build a repeatable interaction-timing harness for the 500-stroke, five-view workload in `tests/browser/canvas-performance.spec.ts`; measure pointer-input-to-visible-frame latency for drawing, pan, and zoom on desktop and WebKit, report sample counts and the percentage within 100 ms, and keep captured images out of test artifacts.
+- [ ] T041 Run the 500-stroke interaction measurement and storage-quota/revocation cases from `specs/002-canvas-first-workspace/quickstart.md`; record device, actual counts, latency distribution, and failures in `specs/002-canvas-first-workspace/test-evidence.md`.
+- [ ] T042 Run the physical iPhone Safari gesture, duplicate/reload, final-tab Restore Closed Tab, and local-LAN read walkthrough from `specs/002-canvas-first-workspace/quickstart.md`; record the actual device arrangement and results in `specs/002-canvas-first-workspace/test-evidence.md`.
+- [ ] T043 Repeat the changed whole-drawing voice capability check using `specs/001-discuss-diagram/feasibility.md`; record whether ChatGPT voice read the current canvas and gave a relevant spoken answer in `specs/002-canvas-first-workspace/test-evidence.md`; if unsupported, stop the spoken-scope claim and return the finding to the user.
+- [ ] T044 Run `pnpm run test:unit`, `pnpm run test:contract`, `pnpm run test:browser`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build`; record exact results and known limits in `specs/002-canvas-first-workspace/test-evidence.md`.
+- [ ] T045 Conduct the five-person drawing walkthrough and ten prepared sketch discussions required by SC-001, SC-002, and SC-006; record observed counts and the two-elements/one-ambiguous-mark scoring in `specs/002-canvas-first-workspace/test-evidence.md` rather than inferring a pass.
 
 ---
 
@@ -147,7 +149,7 @@
 ### Parallel opportunities
 
 - T003 and T004 are independent fixture/harness work in different files.
-- After US3 tests are red, T026 broker session/access work and T027 drawing capture work are independent; T028–T031 integrate them sequentially.
+- After US3 tests are red, T027 broker session/access work and T028 drawing capture work are independent; T029–T032 integrate them sequentially.
 - Test writing for distinct stories can be prepared independently after Phase 2, but production edits to shared files and story checkpoints follow the dependency order above.
 
 ### Parallel examples

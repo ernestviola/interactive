@@ -16,7 +16,7 @@ All drawing records are transient. No application database or durable image stor
 
 One Canvas Session has one Drawing Document, zero or more live Tab Presences, and at most one pending AI read. Duplicated tabs refer to the same session. A distinct canvas session must not be guessed when multiple are available.
 
-**Transitions:** `active → expired` on lease expiry or `active → ended` when the final tab ends cleanly. A page reload rejoins the same active session. After expiry, a recovered tab may establish a new broker generation for its existing local drawing; old read grants never revive.
+**Transitions:** `active → expired` on lease expiry or `active → ended` when the final tab ends cleanly. A confirmed reload of an open tab rejoins the same active drawing; a duplicated tab may join through a live sibling. Restoring a closed final tab starts a blank new session even if the browser retained its old checkpoint. Checkpoint presence by itself is never proof that the old session is live. After a broker restart, a confirmed continuous tab may establish a new broker generation for its existing local drawing; old read grants never revive.
 
 ## Drawing Document
 
@@ -66,4 +66,4 @@ The image is not a durable entity. It exists only for the request and response l
 3. The 51st undoable action evicts the oldest Undo entry, not its visible stroke.
 4. No AI read operation can add, remove, or modify a Stroke.
 5. A snapshot includes all committed strokes at its recorded revision or is not delivered.
-6. Ending the last tab or expiring the broker generation revokes future reads; an image already delivered is outside this revocation boundary.
+6. Ending the last tab or expiring the broker generation revokes future reads; an image already delivered is outside this revocation boundary. A restored closed final tab cannot revive the ended drawing.
