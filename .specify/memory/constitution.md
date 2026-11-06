@@ -93,10 +93,14 @@ the read connection so it cannot access another session. No idle-triggered image
 is required. Automatic image segmentation, structured diagram objects, handwriting
 recognition, and AI canvas edits require separate demonstrated user needs.
 
-The application MUST use Next.js and Google Cloud Platform (GCP), as directed by the
-user. Specific cloud services and connection mechanisms MUST be justified in the
-implementation plan and limited to what the feature needs. Access protection and data
-lifecycle rules MUST be explicit in the feature specification before release.
+The application MUST use Next.js. The current local canvas and loopback broker MAY
+operate without a GCP service. A future feature that specifies cloud deployment MUST
+use Google Cloud Platform (GCP) unless this constitution is explicitly amended again.
+No GCP service or deployment is required for a feature whose approved scope is local
+only. When cloud deployment is specified, the implementation plan MUST justify each
+GCP service and connection mechanism and limit them to what that feature needs.
+Access protection and data lifecycle rules MUST be explicit in the feature
+specification before release.
 
 Spoken discussion MUST NOT be assumed feasible merely because text-based tools work.
 Before implementing a new spoken workflow, a capability check MUST demonstrate a
@@ -138,11 +142,16 @@ artifacts.
 Version 3.0.0 replaces selected-region sharing and manual pairing in Principles I–IV
 and updates the validation obligations in Principle V for the canvas-first workflow.
 The earlier feature specification remains a record of its delivered behavior; new
-work follows the whole-drawing, on-demand rules in this version.
+work follows the whole-drawing, on-demand rules established in that version.
+
+Version 4.0.0 replaces the immediate GCP-use obligation in Product Scope and
+Constraints with permission for local-only features and a GCP requirement for future
+specified cloud deployment. The current canvas-first plan remains local; no cloud
+deployment is added by this amendment.
 
 Versions follow semantic versioning: MAJOR for incompatible principle removals or
 redefinitions, MINOR for new principles or materially expanded guidance, and PATCH
 for clarifications that do not change obligations. Every amendment MUST update the
 last-amended date; the original ratification date MUST remain unchanged.
 
-**Version**: 3.0.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-05
+**Version**: 4.0.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-05
