@@ -2,11 +2,11 @@
 
 **Branch**: `002-canvas-first-workspace` | **Date**: 2026-11-05 | **Spec**: [spec.md](spec.md)
 
-**Input**: Clarified feature specification, approved Interactive Constitution v3.0.0, and the [Figma canvas-first concept](https://www.figma.com/design/aIalohp0XclbOEWbNv3QYh?node-id=4-2).
+**Input**: Clarified feature specification, approved Interactive Constitution v4.0.0, and the [Figma canvas-first concept](https://www.figma.com/design/aIalohp0XclbOEWbNv3QYh?node-id=4-2).
 
 ## Summary
 
-Open interactive directly on an open-ended drawing surface with a four-icon, bottom-centered toolbar. World-coordinate strokes and a per-tab viewport support pen drawing, mouse-wheel and pinch zoom, and hand/two-finger pan without accidental ink. Retain 50 Undo steps. Reloading restores a tab's session; duplicated tabs share one live drawing. The existing local broker automatically makes the active canvas readable by the configured ChatGPT helper, which captures every committed stroke in one padded image only when asked. Preserve read-only AI access, transient data, clear failures, and drawing during connection outages.
+Open interactive directly on an open-ended drawing surface with a four-icon, bottom-centered toolbar. World-coordinate strokes and a per-tab viewport support pen drawing, mouse-wheel and pinch zoom, and hand/two-finger pan without accidental ink. Retain 50 Undo steps. Reloading an open tab restores its drawing; duplicated tabs share one live drawing; restoring a closed final tab opens blank. The existing local broker automatically makes the active canvas readable by the configured ChatGPT helper, which captures every committed stroke in one padded image only when asked. Preserve read-only AI access, transient data, clear failures, and drawing during connection outages.
 
 ## Technical Context
 
@@ -39,10 +39,10 @@ Open interactive directly on an open-ended drawing surface with a four-icon, bot
 | III. Keep users in control | PASS | PASS | Browser remains drawable offline; broker read grant is session-scoped; MCP has no write path |
 | IV. Understandable AI claims | PASS | PASS | Tool metadata says sketch is design context, not verified implementation; sharing scope is discoverable |
 | V. TDD and outcome validation | PASS | PASS | Tests precede covered behavior; controlled MCP checks, browser gestures, physical iPhone walkthrough |
-| Next.js and GCP | PASS | PASS | Existing Next.js retained; no GCP provisioning in this locally hosted slice under prior user direction |
+| Next.js and future GCP deployment | PASS | PASS | Existing Next.js retained; Constitution v4.0.0 permits this local-only slice and requires GCP when cloud deployment is specified |
 | Voice capability gate | PASS | PASS | Prior physical-device feasibility is documented; recheck the changed whole-drawing tool before claiming new voice behavior |
 
-No constitution violation is proposed. The browser's page-close event is not a reliable revocation signal, so broker lease expiry is mandatory. A browser crash may restore tab-scoped storage; a restored page must reauthorize under a new live broker generation rather than reuse expired AI access.
+No constitution violation is proposed. The browser's page-close event is not a reliable revocation signal, so broker lease expiry is mandatory. A browser may restore tab-scoped storage after closing a tab; checkpoint presence alone cannot authorize recovery. Recovery must distinguish an open-tab reload or a live sibling from a restored closed final tab, and must fail closed to a blank drawing when continuity cannot be established. Browser-specific behavior requires validation before claiming this guarantee.
 
 ## Project Structure
 

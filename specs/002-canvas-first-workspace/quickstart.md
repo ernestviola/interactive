@@ -37,6 +37,7 @@ Start the local app with `pnpm run dev`. Open the canvas in desktop Chrome or Sa
 | Toolbar | Hover, keyboard focus/activation, screen reader, touch press-and-hold | Four bottom-centered icons have usable names and state; holding reveals a label without activating |
 | History | Draw 51 strokes; Undo repeatedly; Redo; draw again | Exactly 50 recent strokes are undoable; older ink remains; new stroke clears Redo |
 | Reload | Draw, undo once, reload the same tab | Drawing and 50-step history return; current view can continue |
+| Restore closed final tab | Draw, close the only canvas tab, use browser Restore Closed Tab | New canvas is blank; old history and AI read access do not return |
 | Duplicate | Duplicate tab; draw and Undo in each | Both show one synchronized drawing/history; neither requires manual sync |
 | Read | Ask configured ChatGPT helper to read | One padded PNG includes every committed stroke from one revision, with fresh metadata |
 | Re-read | Edit, ask again | New image reflects edit; earlier delivered image remains unchanged |
@@ -51,4 +52,4 @@ For read accuracy, place strokes far apart and near opposite edges of the drawn 
 - Measure the specified 500-stroke workload against SC-005: at least 95% of drawing, pan, and zoom interactions show visible feedback within 100 ms on supported desktop and iPhone devices.
 - Run the five-person usability walkthrough in SC-001/SC-002 and the ten prepared sketch discussions in SC-006. Preidentify two visible elements and one ambiguous mark in each discussion, then record actual counts, not inferred passes.
 - Repeat the prior physical voice capability procedure from [feasibility.md](../001-discuss-diagram/feasibility.md) against the new whole-drawing tool before claiming spoken reads work. Record device arrangement and the actual result.
-- Record known browser session-restore and image legibility limits in the change summary. If a required gate fails, fix it or return to the user with the specific unresolved behavior.
+- Validate reload versus Restore Closed Tab behavior in the supported browsers; record any browser limitation and image legibility limit in the change summary. If a required gate fails, fix it or return to the user with the specific unresolved behavior.
